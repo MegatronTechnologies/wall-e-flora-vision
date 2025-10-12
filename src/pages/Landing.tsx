@@ -20,6 +20,126 @@ const Landing = () => {
     });
   };
 
+  const { i18n } = useTranslation();
+
+  const aboutContent = {
+    az: {
+      intro:
+        'Mən — Aydın Sulxayev (11-ci sinif), Zaqatala, Azərbaycan. Proqramlaşdırma dilləri: Python, HTML, CSS, JavaScript. Raspberry Pi ilə təcrübəm var. Komandamız — MegTech (Aydın Sulxayev və Nihat Muradlı) SAF 2025 yarışmasının Innovation and Entrepreneurship kateqoriyasında iştirak edir.',
+      competition: 'SAF 2025 — Innovation and Entrepreneurship',
+      sections: [
+        {
+          title: 'Layihənin təsviri',
+          items: [
+            'Wall‑E temalı robot: Intel RealSense D455 kamera və Raspberry Pi 5 üzərində YOLOv8 ilə xrizantema bitkilərini və onların üzərində “mealybug_infestation” aşkarlanmasını həyata keçirir.',
+            'Veb tətbiq vasitəsilə Detect nəticələri idarə olunur və istifadəçiyə göstərilir.',
+          ],
+        },
+        {
+          title: 'İş prinsipi (Detect axını)',
+          items: [
+            'İstifadəçi User Dashboard-da “Detect” düyməsinə klik edir; Raspberry Pi-də işləyən YOLOv8 prosesinə sorğu göndərilir.',
+            'Pi cavab olaraq snapshot (ümumi kadr), hər “Chrysanthemum” üçün kəsilmiş şəkil və etibarlılıq faizi, xəstəlik statusu (kəsikdə “mealybug_infestation” varsa — xəstə), tarix və vaxt qaytarır.',
+            'Saytda həmin məlumata əsasən yeni Detect kartı yaranır.',
+          ],
+        },
+        {
+          title: 'Mümkün nəticələr',
+          items: [
+            '0 Objects Detected — xrizantema aşkar edilməyib: yalnız sübut kimi ümumi şəkil göstərilir.',
+            '“Chrysanthemum” detected — “mealybug_infestation” yoxdur: kəsilmiş sağlam bitki şəkilləri və ümumi kadr.',
+            '“Chrysanthemum” və “mealybug_infestation” detected — xəstə: ümumi kadr, kəsilmiş şəkillər və müalicə/izolasiya haqqında məlumat.',
+            'Birdən çox xrizantema: bəziləri sağlam, bəziləri xəstə — kart daxilində ayrı-ayrılıqda göstərilir.',
+          ],
+        },
+        {
+          title: 'Veb tətbiq səhifələri',
+          items: [
+            'Landing Page (haqqımızda və əlaqə)',
+            'User Dashboard (Detect və şəkil yükləmə)',
+            'SuperAdmin Panel (hesabların yaradılması/silinməsi/redaktəsi)',
+          ],
+        },
+        {
+          title: 'Avadanlıq',
+          items: [
+            'Wall‑E üslubunda robot gövdəsi',
+            'Intel RealSense D455 kamera',
+            'Raspberry Pi 5',
+            'Opsional: dinamik, baş və qolların hərəkəti',
+          ],
+        },
+        {
+          title: 'Komanda və bacarıqlar',
+          items: [
+            'MegTech — 2 iştirakçı: Aydın Sulxayev və Nihat Muradlı (Zaqatala, Azərbaycan)',
+            'Proqramlaşdırma: Python, HTML, CSS, JavaScript; Raspberry Pi təcrübəsi',
+            'Maraqlar: Robototexnika və İT',
+          ],
+        },
+      ],
+    },
+    eng: {
+      intro:
+        "I'm Aydın Sulxayev (11th grade), from Zaqatala, Azerbaijan. I know Python, HTML, CSS, JavaScript and have experience with Raspberry Pi. Our team — MegTech (Aydın Sulxayev and Nihat Muradli) participates in SAF 2025 in the Innovation and Entrepreneurship category.",
+      competition: 'SAF 2025 — Innovation and Entrepreneurship',
+      sections: [
+        {
+          title: 'Project Overview',
+          items: [
+            'Wall‑E inspired robot: Intel RealSense D455 + Raspberry Pi 5 running YOLOv8 to detect Chrysanthemums and “mealybug_infestation”.',
+            'Detect results are presented and managed in a web application.',
+          ],
+        },
+        {
+          title: 'Detection Workflow',
+          items: [
+            'User clicks Detect in the User Dashboard; a request is sent to the Raspberry Pi running YOLOv8.',
+            'Pi responds with a snapshot, cropped images for each detected “Chrysanthemum” with confidence, disease flag (if a crop has “mealybug_infestation”), and date/time.',
+            'The site creates a Detect card with all details.',
+          ],
+        },
+        {
+          title: 'Possible Outcomes',
+          items: [
+            '0 Objects Detected — no chrysanthemum found: show only the snapshot as evidence.',
+            '“Chrysanthemum” detected — no “mealybug_infestation”: cropped healthy images and the snapshot.',
+            '“Chrysanthemum” and “mealybug_infestation” detected — diseased: snapshot, crops and treatment/isolating info.',
+            'Multiple chrysanthemums: mixed healthy/diseased — show separately within the card.',
+          ],
+        },
+        {
+          title: 'Web Application Pages',
+          items: [
+            'Landing Page (about and contact)',
+            'User Dashboard (Detect and image upload)',
+            'SuperAdmin Panel (create/delete/edit accounts)',
+          ],
+        },
+        {
+          title: 'Hardware',
+          items: [
+            'Wall‑E style chassis',
+            'Intel RealSense D455 camera',
+            'Raspberry Pi 5',
+            'Optional: speaker, head and arm movement',
+          ],
+        },
+        {
+          title: 'Team and Skills',
+          items: [
+            'MegTech — 2 participants: Sulxayev Aydın and Nihat Muradli (Zaqatala, Azerbaijan)',
+            'Programming: Python, HTML, CSS, JavaScript; Raspberry Pi experience',
+            'Interests: Robotics and IT',
+          ],
+        },
+      ],
+    },
+  } as const;
+
+  const lang = i18n.language?.startsWith('az') ? 'az' : 'eng';
+  const localized = aboutContent[lang];
+
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
@@ -81,9 +201,26 @@ const Landing = () => {
               <h2 className="text-4xl font-bold">{t('about.title')}</h2>
             </div>
             
-            <p className="text-lg text-muted-foreground text-center leading-relaxed">
-              {t('about.description')}
-            </p>
+            <div className="space-y-6 text-left max-w-3xl mx-auto">
+              <p className="text-lg text-muted-foreground leading-relaxed text-center">
+                {localized.intro}
+              </p>
+
+              <p className="text-center font-medium text-primary">
+                {localized.competition}
+              </p>
+
+              {localized.sections.map((section) => (
+                <div key={section.title} className="space-y-2">
+                  <h3 className="text-2xl font-semibold text-center md:text-left">{section.title}</h3>
+                  <ul className="list-disc pl-6 space-y-1 text-muted-foreground">
+                    {section.items.map((item) => (
+                      <li key={item}>{item}</li>
+                    ))}
+                  </ul>
+                </div>
+              ))}
+            </div>
           </motion.div>
         </div>
       </section>
