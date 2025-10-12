@@ -16,7 +16,8 @@ const Login = () => {
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
-    navigate('/dashboard');
+    const isSuperAdmin = email.trim().toLowerCase().includes('superadmin');
+    navigate(isSuperAdmin ? '/admin' : '/dashboard');
   };
 
   return (
