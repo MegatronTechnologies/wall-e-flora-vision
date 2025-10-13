@@ -19,6 +19,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
+import { logger } from '@/lib/logger';
 
 const Dashboard = () => {
   const { t } = useTranslation();
@@ -26,9 +27,10 @@ const Dashboard = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [detections, setDetections] = useState<Detection[]>([]);
   const [loading, setLoading] = useState(true);
-   const [statusFilter, setStatusFilter] = useState<'all' | DetectionStatus>('all');
+  const [statusFilter, setStatusFilter] = useState<'all' | DetectionStatus>('all');
 
   useEffect(() => {
+    logger.info('Dashboard', 'Initializing dashboard page');
     fetchDetections();
     
     // Subscribe to real-time updates
@@ -42,6 +44,7 @@ const Dashboard = () => {
           table: 'detections'
         },
         () => {
+          logger.debug('Dashboard', 'Realtime INSERT received, refreshing detections');
           fetchDetections();
           toast({
             title: 'New detection received',
@@ -57,6 +60,7 @@ const Dashboard = () => {
   }, [fetchDetections, toast]);
 
   const fetchDetections = useCallback(async () => {
+    logger.debug('Dashboard', 'Fetching detections');
     setLoading(true);
     try {
       const { data: detectionsData, error } = await supabase
@@ -75,11 +79,12 @@ const Dashboard = () => {
       );
 
       setDetections(normalized);
+      logger.info('Dashboard', `Loaded ${normalized.length} detections`);
     } catch (error) {
-      console.error('Error fetching detections:', error);
+      logger.error('Dashboard', 'Error fetching detections', error);
       toast({
-        title: 'Error',
-        description: 'Failed to load detections',
+        title: t('common.error'),
+        description: t('dashboard.loadError', { defaultValue: 'Failed to load detections' }),
         variant: 'destructive',
       });
     } finally {
@@ -107,6 +112,7 @@ const Dashboard = () => {
   );
 
   const handleDetect = () => {
+    logger.debug('Dashboard', 'Detect action triggered');
     setIsModalOpen(true);
   };
 
@@ -161,7 +167,11 @@ const Dashboard = () => {
               </p>
               <Select
                 value={statusFilter}
-                onValueChange={(value) => setStatusFilter(value as 'all' | DetectionStatus)}
+                onValueChange={(value) => {
+                  const nextFilter = value as 'all' | DetectionStatus;
+                  logger.debug('Dashboard', `Status filter changed`, nextFilter);
+                  setStatusFilter(nextFilter);
+                }}
               >
                 <SelectTrigger className="w-full sm:w-56">
                   <SelectValue placeholder={t('dashboard.allStatuses', { defaultValue: 'All statuses' })} />

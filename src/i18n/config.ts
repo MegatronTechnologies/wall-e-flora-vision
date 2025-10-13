@@ -35,6 +35,8 @@ const resources = {
         message: 'Mesaj',
         send: 'Göndər',
         success: 'Mesajınız göndərildi!',
+        validationError: 'Zəhmət olmasa bütün sahələri doldurun.',
+        submitError: 'Sorğunu göndərmək mümkün olmadı.',
       },
       
       // Footer
@@ -68,6 +70,7 @@ const resources = {
           temperature: 'Temperatur',
           humidity: 'Rütubət',
         },
+        loadError: 'Deteksiyaları yükləmək mümkün olmadı.',
       },
       
       // Admin
@@ -118,6 +121,12 @@ const resources = {
         close: 'Bağla',
         inDevelopment: 'Bu funksiya hazırlanır',
       },
+      auth: {
+        missingCredentials: 'Email və parol boş ola bilməz.',
+        genericError: 'Daxil olarkən problem yarandı.',
+        signupMissing: 'Bütün sahələri doldurun.',
+        passwordTooShort: 'Parol ən azı 6 simvoldan ibarət olmalıdır.',
+      },
     },
   },
   eng: {
@@ -153,6 +162,8 @@ const resources = {
         message: 'Message',
         send: 'Send',
         success: 'Your message has been sent!',
+        validationError: 'Please fill out all fields.',
+        submitError: 'Failed to submit your request.',
       },
       
       // Footer
@@ -186,6 +197,7 @@ const resources = {
           temperature: 'Temperature',
           humidity: 'Humidity',
         },
+        loadError: 'Failed to load detections.',
       },
       
       // Admin
@@ -235,6 +247,12 @@ const resources = {
       modal: {
         close: 'Close',
         inDevelopment: 'Feature in development',
+      },
+      auth: {
+        missingCredentials: 'Email and password are required.',
+        genericError: 'Something went wrong while logging in.',
+        signupMissing: 'Please fill out all fields.',
+        passwordTooShort: 'Password must be at least 6 characters.',
       },
     },
   },

@@ -7,6 +7,7 @@ import Modal from './Modal';
 import type { Detection } from '@/types/detection';
 import { Button } from './ui/button';
 import { RefreshCw } from 'lucide-react';
+import { logger } from '@/lib/logger';
 
 interface DetectCardProps {
   detection: Detection;
@@ -59,11 +60,17 @@ const DetectCard = ({ detection, index }: DetectCardProps) => {
 
   const handleRefreshImage = (event: MouseEvent<HTMLButtonElement>) => {
     event.stopPropagation();
+    logger.debug('DetectCard', 'Refreshing main image', detection.id);
     setImageVersion(Date.now());
   };
 
   const formatMetadataLabel = (key: string) =>
     t(`dashboard.metadata.${key}`, { defaultValue: key.charAt(0).toUpperCase() + key.slice(1) });
+
+  const openModal = () => {
+    logger.debug('DetectCard', 'Opening detection modal', detection.id);
+    setIsModalOpen(true);
+  };
 
   return (
     <>
@@ -72,7 +79,7 @@ const DetectCard = ({ detection, index }: DetectCardProps) => {
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: index * 0.1 }}
         whileHover={{ scale: 1.02 }}
-        onClick={() => setIsModalOpen(true)}
+        onClick={openModal}
         className="cursor-pointer"
       >
         <Card className="p-6 bg-card border-border hover:border-primary transition-all">

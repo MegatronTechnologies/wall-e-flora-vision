@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
@@ -7,17 +7,56 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import Navbar from '@/components/Navbar';
 import { Bot } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
+import { logger } from '@/lib/logger';
 
 const Signup = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const { toast } = useToast();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
-  const handleSignup = (e: React.FormEvent) => {
-    e.preventDefault();
-    navigate('/dashboard');
+  useEffect(() => {
+    logger.info('SignupPage', 'Rendered signup page');
+  }, []);
+
+  const handleSignup = (event: React.FormEvent) => {
+    event.preventDefault();
+    logger.debug('SignupPage', 'Attempting signup', { email });
+
+    if (!name || !email || !password) {
+      logger.warn('SignupPage', 'Missing signup fields', { nameProvided: Boolean(name), emailProvided: Boolean(email) });
+      toast({
+        title: t('common.error'),
+        description: t('auth.signupMissing', { defaultValue: 'Bütün sahələri doldurun.' }),
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    if (password.length < 6) {
+      logger.warn('SignupPage', 'Password too short');
+      toast({
+        title: t('common.error'),
+        description: t('auth.passwordTooShort', { defaultValue: 'Parol ən azı 6 simvoldan ibarət olmalıdır.' }),
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    try {
+      logger.info('SignupPage', 'Signup successful, redirecting to dashboard', email);
+      navigate('/dashboard');
+    } catch (error) {
+      logger.error('SignupPage', 'Unexpected error while signing up', error);
+      toast({
+        title: t('common.error'),
+        description: t('auth.genericError', { defaultValue: 'Something went wrong while logging in.' }),
+        variant: 'destructive',
+      });
+    }
   };
 
   return (

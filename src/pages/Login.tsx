@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
@@ -7,17 +7,46 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import Navbar from '@/components/Navbar';
 import { Bot } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
+import { logger } from '@/lib/logger';
 
 const Login = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const { toast } = useToast();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
-  const handleLogin = (e: React.FormEvent) => {
-    e.preventDefault();
-    const isSuperAdmin = email.trim().toLowerCase().includes('superadmin');
-    navigate(isSuperAdmin ? '/admin' : '/dashboard');
+  useEffect(() => {
+    logger.info('LoginPage', 'Rendered login page');
+  }, []);
+
+  const handleLogin = (event: React.FormEvent) => {
+    event.preventDefault();
+    logger.debug('LoginPage', 'Attempting login', { email });
+
+    if (!email || !password) {
+      logger.warn('LoginPage', 'Missing credentials');
+      toast({
+        title: t('common.error', { defaultValue: 'Xəta baş verdi' }),
+        description: t('auth.missingCredentials', { defaultValue: 'Email və parol boş ola bilməz' }),
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    try {
+      const isSuperAdmin = email.trim().toLowerCase().includes('superadmin');
+      logger.info('LoginPage', 'Login successful, redirecting', isSuperAdmin ? 'admin' : 'dashboard');
+      navigate(isSuperAdmin ? '/admin' : '/dashboard');
+    } catch (error) {
+      logger.error('LoginPage', 'Unexpected error while logging in', error);
+      toast({
+        title: t('common.error', { defaultValue: 'Xəta baş verdi' }),
+        description: t('auth.genericError', { defaultValue: 'Daxil olarkən problem yarandı.' }),
+        variant: 'destructive',
+      });
+    }
   };
 
   return (

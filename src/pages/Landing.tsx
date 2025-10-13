@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
@@ -8,16 +9,50 @@ import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { Sprout, Users, Mail } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
+import { logger } from '@/lib/logger';
 
 const Landing = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  useEffect(() => {
+    logger.info('LandingPage', 'Landing page rendered');
+  }, []);
 
-  const handleContact = (e: React.FormEvent) => {
-    e.preventDefault();
-    toast({
-      title: t('contact.success'),
-    });
+  const handleContact = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const formData = new FormData(event.currentTarget);
+    const payload = {
+      name: formData.get('name'),
+      email: formData.get('email'),
+      message: formData.get('message'),
+    };
+
+    logger.debug('LandingPage', 'Submitting contact form', payload);
+
+    if (!payload.name || !payload.email || !payload.message) {
+      logger.warn('LandingPage', 'Contact form validation failed', payload);
+      toast({
+        title: t('common.error'),
+        description: t('contact.validationError', { defaultValue: 'Zəhmət olmasa bütün sahələri doldurun.' }),
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    try {
+      toast({
+        title: t('contact.success'),
+      });
+      logger.info('LandingPage', 'Contact form submitted', payload.email);
+      event.currentTarget.reset();
+    } catch (error) {
+      logger.error('LandingPage', 'Failed to submit contact form', error);
+      toast({
+        title: t('common.error'),
+        description: t('contact.submitError', { defaultValue: 'Sorğunu göndərmək mümkün olmadı.' }),
+        variant: 'destructive',
+      });
+    }
   };
 
   const { i18n } = useTranslation();
@@ -242,6 +277,7 @@ const Landing = () => {
             <form onSubmit={handleContact} className="space-y-6">
               <div>
                 <Input
+                  name="name"
                   placeholder={t('contact.name')}
                   className="bg-card border-border focus:border-primary"
                   required
@@ -250,6 +286,7 @@ const Landing = () => {
               
               <div>
                 <Input
+                  name="email"
                   type="email"
                   placeholder={t('contact.email')}
                   className="bg-card border-border focus:border-primary"
@@ -259,6 +296,7 @@ const Landing = () => {
               
               <div>
                 <Textarea
+                  name="message"
                   placeholder={t('contact.message')}
                   className="bg-card border-border focus:border-primary min-h-[150px]"
                   required

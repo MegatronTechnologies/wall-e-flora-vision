@@ -55,6 +55,7 @@ import {
   updateAdminUser,
 } from '@/integrations/supabase/admin';
 import { UserPlus, Edit, Trash2, Search, Filter, ArrowUpDown, Loader2 } from 'lucide-react';
+import { logger } from '@/lib/logger';
 
 const SuperAdminPanel = () => {
   const { t } = useTranslation();
@@ -82,11 +83,13 @@ const SuperAdminPanel = () => {
 
   const loadUsers = useCallback(async () => {
     setLoading(true);
+    logger.debug('SuperAdminPanel', 'Loading users from Supabase');
     try {
       const result = await fetchAdminUsers();
       setUsers(result);
+      logger.info('SuperAdminPanel', `Fetched ${result.length} users`);
     } catch (error) {
-      console.error('Failed to load admin users', error);
+      logger.error('SuperAdminPanel', 'Failed to load admin users', error);
       toast({
         title: t('common.error', { defaultValue: 'Xəta baş verdi' }),
         description: t('admin.loadError', { defaultValue: 'İstifadəçilər yüklənmədi' }),
@@ -98,6 +101,7 @@ const SuperAdminPanel = () => {
   }, [toast, t]);
 
   useEffect(() => {
+    logger.info('SuperAdminPanel', 'Mounting super admin panel');
     loadUsers();
   }, [loadUsers]);
 
@@ -143,11 +147,13 @@ const SuperAdminPanel = () => {
   };
 
   const openCreateModal = () => {
+    logger.debug('SuperAdminPanel', 'Opening create user modal');
     resetForm();
     setIsFormOpen(true);
   };
 
   const openEditModal = (user: AdminUser) => {
+    logger.debug('SuperAdminPanel', 'Opening edit user modal', user.id);
     setFormState({
       id: user.id,
       email: user.email,
@@ -160,6 +166,7 @@ const SuperAdminPanel = () => {
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setSaving(true);
+    logger.debug('SuperAdminPanel', formState.id ? 'Updating user' : 'Creating user', formState);
     try {
       const payload = {
         email: formState.email.trim(),
@@ -171,6 +178,7 @@ const SuperAdminPanel = () => {
       if (formState.id) {
         updated = await updateAdminUser({ id: formState.id, ...payload });
         setUsers((prev) => prev.map((user) => (user.id === updated.id ? updated : user)));
+        logger.info('SuperAdminPanel', 'User updated', updated.id);
         toast({
           title: t('admin.updateSuccess'),
           description: t('admin.updateSuccessDesc'),
@@ -178,6 +186,7 @@ const SuperAdminPanel = () => {
       } else {
         updated = await createAdminUser(payload);
         setUsers((prev) => [updated, ...prev]);
+        logger.info('SuperAdminPanel', 'User created', updated.id);
         toast({
           title: t('admin.createSuccess'),
           description: t('admin.createSuccessDesc'),
@@ -187,7 +196,7 @@ const SuperAdminPanel = () => {
       setIsFormOpen(false);
       resetForm();
     } catch (error) {
-      console.error('Failed to save user', error);
+      logger.error('SuperAdminPanel', 'Failed to save user', error);
       toast({
         title: t('common.error', { defaultValue: 'Xəta baş verdi' }),
         description: t('admin.saveError'),
@@ -201,15 +210,17 @@ const SuperAdminPanel = () => {
   const handleDelete = async () => {
     if (!deleteTarget) return;
     setDeleting(true);
+    logger.warn('SuperAdminPanel', 'Deleting user', deleteTarget.id);
     try {
       await deleteAdminUser(deleteTarget.id);
       setUsers((prev) => prev.filter((user) => user.id !== deleteTarget.id));
+      logger.info('SuperAdminPanel', 'User deleted', deleteTarget.id);
       toast({
         title: t('admin.deleteSuccess'),
         description: t('admin.deleteSuccessDesc'),
       });
     } catch (error) {
-      console.error('Failed to delete user', error);
+      logger.error('SuperAdminPanel', 'Failed to delete user', error);
       toast({
         title: t('common.error', { defaultValue: 'Xəta baş verdi' }),
         description: t('admin.deleteError'),
@@ -399,12 +410,16 @@ const SuperAdminPanel = () => {
       </div>
 
       {/* Create / Edit dialog */}
-      <Dialog open={isFormOpen} onOpenChange={(open) => {
-        setIsFormOpen(open);
-        if (!open) {
-          resetForm();
-        }
-      }}>
+      <Dialog
+        open={isFormOpen}
+        onOpenChange={(open) => {
+          setIsFormOpen(open);
+          if (!open) {
+            logger.debug('SuperAdminPanel', 'Closing user form dialog');
+            resetForm();
+          }
+        }}
+      >
         <DialogContent>
           <DialogHeader>
             <DialogTitle>
@@ -472,7 +487,15 @@ const SuperAdminPanel = () => {
       </Dialog>
 
       {/* Delete confirmation */}
-      <AlertDialog open={Boolean(deleteTarget)} onOpenChange={(open) => !open && !deleting && setDeleteTarget(null)}>
+      <AlertDialog
+        open={Boolean(deleteTarget)}
+        onOpenChange={(open) => {
+          if (!open && !deleting) {
+            logger.debug('SuperAdminPanel', 'Closing delete confirmation dialog');
+            setDeleteTarget(null);
+          }
+        }}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>{t('admin.deleteConfirmTitle')}</AlertDialogTitle>
