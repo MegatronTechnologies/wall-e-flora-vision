@@ -14,22 +14,6 @@ export interface AdminUser {
 
 const DEFAULT_ROLE: RoleOption = "user";
 
-const adminSelect = `
-  *,
-  user_roles(role)
-`;
-
-const extractRole = (
-  record: {
-    user_roles?: Array<Pick<Tables<"user_roles">, "role"> | null> | null;
-  },
-): RoleOption => {
-  const role = record.user_roles?.find(
-    (entry): entry is Pick<Tables<"user_roles">, "role"> => Boolean(entry),
-  );
-  return role?.role ?? DEFAULT_ROLE;
-};
-
 const ensureAuthenticated = async () => {
   const { data } = await supabase.auth.getSession();
   if (!data.session) {
@@ -42,21 +26,33 @@ const ensureAuthenticated = async () => {
 export const fetchAdminUsers = async (): Promise<AdminUser[]> => {
   await ensureAuthenticated();
   logger.debug("AdminService", "Fetching profiles with roles");
-  const { data, error } = await supabase
-    .from("profiles")
-    .select(adminSelect)
-    .order("created_at", { ascending: false });
 
-  if (error) {
-    logger.error("AdminService", "Failed to fetch users", error);
-    throw error;
+  const [{ data: profiles, error: profilesError }, { data: rolesData, error: rolesError }] = await Promise.all([
+    supabase.from("profiles").select("id, email, full_name, created_at").order("created_at", { ascending: false }),
+    supabase.from("user_roles").select("user_id, role"),
+  ]);
+
+  if (profilesError) {
+    logger.error("AdminService", "Failed to fetch profiles", profilesError);
+    throw profilesError;
   }
 
-  return (data ?? []).map((profile) => ({
+  if (rolesError) {
+    logger.warn("AdminService", "Failed to fetch roles", rolesError);
+  }
+
+  const roleMap = new Map<string, RoleOption>();
+  rolesData?.forEach((entry) => {
+    if (entry?.user_id && entry.role) {
+      roleMap.set(entry.user_id, entry.role as RoleOption);
+    }
+  });
+
+  return (profiles ?? []).map((profile) => ({
     id: profile.id,
     email: profile.email,
     full_name: profile.full_name,
-    role: extractRole(profile),
+    role: roleMap.get(profile.id) ?? DEFAULT_ROLE,
     created_at: profile.created_at,
   }));
 };
