@@ -75,6 +75,8 @@ const SuperAdminPanel = () => {
     role: 'user',
   });
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [saving, setSaving] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<AdminUser | null>(null);
   const [deleting, setDeleting] = useState(false);
@@ -153,6 +155,8 @@ const SuperAdminPanel = () => {
       role: 'user',
     });
     setPassword('');
+    setConfirmPassword('');
+    setShowPassword(false);
   };
 
   const openCreateModal = () => {
@@ -170,6 +174,7 @@ const SuperAdminPanel = () => {
       role: user.role,
     });
     setPassword('');
+    setConfirmPassword('');
     setIsFormOpen(true);
   };
 
@@ -193,6 +198,17 @@ const SuperAdminPanel = () => {
       toast({
         title: t('common.error'),
         description: t('auth.passwordTooShort'),
+        variant: 'destructive',
+      });
+      setSaving(false);
+      return;
+    }
+
+    if (!formState.id && password !== confirmPassword) {
+      logger.warn('SuperAdminPanel', 'Password confirmation mismatch');
+      toast({
+        title: t('common.error'),
+        description: t('auth.passwordMismatch'),
         variant: 'destructive',
       });
       setSaving(false);
@@ -510,19 +526,45 @@ const SuperAdminPanel = () => {
                 </div>
 
             {!formState.id && (
-              <div className="space-y-2">
-                <Label htmlFor="password">{t('admin.password')}</Label>
-                <Input
-                  id="password"
-                  type="password"
-                  required={!formState.id}
-                  minLength={6}
-                  value={password}
-                  onChange={(event) => setPassword(event.target.value)}
-                  disabled={saving}
-                  placeholder={t('admin.passwordPlaceholder')}
-                />
-                <p className="text-xs text-muted-foreground">{t('admin.passwordHint')}</p>
+              <div className="grid gap-3">
+                <div className="space-y-2">
+                  <Label htmlFor="password">{t('admin.password')}</Label>
+                  <div className="relative">
+                    <Input
+                      id="password"
+                      type={showPassword ? 'text' : 'password'}
+                      required
+                      minLength={6}
+                      value={password}
+                      onChange={(event) => setPassword(event.target.value)}
+                      disabled={saving}
+                      placeholder={t('admin.passwordPlaceholder')}
+                    />
+                    <button
+                      type="button"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground text-xs uppercase"
+                      onClick={() => setShowPassword((prev) => !prev)}
+                      aria-label={t('admin.togglePassword')}
+                    >
+                      {showPassword ? t('admin.hide') : t('admin.show')}
+                    </button>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="confirm_password">{t('admin.confirmPassword')}</Label>
+                  <Input
+                    id="confirm_password"
+                    type={showPassword ? 'text' : 'password'}
+                    required
+                    minLength={6}
+                    value={confirmPassword}
+                    onChange={(event) => setConfirmPassword(event.target.value)}
+                    disabled={saving}
+                    placeholder={t('admin.passwordPlaceholder')}
+                  />
+                  <p className="text-xs text-muted-foreground">{t('admin.passwordHint')}</p>
+                </div>
               </div>
             )}
 
