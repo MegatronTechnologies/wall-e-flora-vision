@@ -141,5 +141,7 @@ Hazırda `raspberry-pi/send_detection.py` ayrı skript kimi işləyir. Aşağıd
 - **“Authorization header yoxdur” xətası gəlir.** — `RASPBERRY_PI_API_KEY` mühit dəyişənini doğru yazdığınıza əmin olun və skripti yenidən başladın.
 - **“Rate limit exceeded” cavabı gəlir.** — Göndərişləri bir neçə saniyə dayandırın və yalnız real dəyişik olan kadrlarda sorğu göndərin; lazım olsa `RASPBERRY_PI_RATE_LIMIT_PER_MINUTE` dəyərini Lovable Cloud-da artırın.
 - **Şəkil serverdə görünmür.** — Fayl yolunun mövcudluğunu yoxlayın və göndərməzdən əvvəl kamera çarxının yazıldığını təsdiqləyin; base64 çevirmədən əvvəl `os.path.exists(path)` ilə yoxlama aparın.
+- **“Edge function is unreachable” xəbərdarlığı görsənir.** — Lovable/Supabase layihənizdə `manage-users` edge funksiyasının deploy olunduğuna və lokal mühitin `VITE_SUPABASE_URL` vasitəsilə həmin hosta çıxışına əmin olun (`supabase functions deploy manage-users`).
+- **Dashboard-dakı `Scan`/`Detect` düymələri işləmirsə.** — `VITE_STREAM_URL` (canlı video) və `VITE_PI_DETECT_URL` (deteksiya POST endpoint-i) dəyərlərini `.env` faylında konfiqurasiya edin; Raspberry Pi-də uyğun servis və ya API işləməlidir.
 
 Bu addımları tamamladıqdan sonra Raspberry Pi hər aşkarlama üçün şəkilləri və məlumatları Lovable Cloud-a göndərə biləcək.
