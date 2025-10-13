@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
 import Navbar from '@/components/Navbar';
@@ -26,71 +26,200 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
-import { UserPlus, Edit, Trash2, Search, Filter, ArrowUpDown } from 'lucide-react';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import { Label } from '@/components/ui/label';
+import { useToast } from '@/hooks/use-toast';
+import {
+  AdminUser,
+  RoleOption,
+  createAdminUser,
+  deleteAdminUser,
+  fetchAdminUsers,
+  updateAdminUser,
+} from '@/integrations/supabase/admin';
+import { UserPlus, Edit, Trash2, Search, Filter, ArrowUpDown, Loader2 } from 'lucide-react';
 
 const SuperAdminPanel = () => {
   const { t } = useTranslation();
+  const { toast } = useToast();
 
-  const mockUsers = [
-    {
-      id: 'U001',
-      name: 'Aydın Sulxayev',
-      email: 'aydin@megtech.az',
-      role: 'Admin',
-      dateCreated: '2024-12-01',
-    },
-    {
-      id: 'U002',
-      name: 'Nihat Muradli',
-      email: 'nihat@megtech.az',
-      role: 'Admin',
-      dateCreated: '2024-12-01',
-    },
-    {
-      id: 'U003',
-      name: 'Test User',
-      email: 'test@example.com',
-      role: 'User',
-      dateCreated: '2025-01-10',
-    },
-  ];
-
+  const [users, setUsers] = useState<AdminUser[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [isFormOpen, setIsFormOpen] = useState(false);
+  const [formState, setFormState] = useState<{
+    id?: string;
+    email: string;
+    full_name: string;
+    role: RoleOption;
+  }>({
+    email: '',
+    full_name: '',
+    role: 'user',
+  });
+  const [saving, setSaving] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<AdminUser | null>(null);
+  const [deleting, setDeleting] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
-  const [roleFilter, setRoleFilter] = useState<'all' | 'Admin' | 'User'>('all');
+  const [roleFilter, setRoleFilter] = useState<'all' | RoleOption>('all');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
+
+  const loadUsers = useCallback(async () => {
+    setLoading(true);
+    try {
+      const result = await fetchAdminUsers();
+      setUsers(result);
+    } catch (error) {
+      console.error('Failed to load admin users', error);
+      toast({
+        title: t('common.error', { defaultValue: 'Xəta baş verdi' }),
+        description: t('admin.loadError', { defaultValue: 'İstifadəçilər yüklənmədi' }),
+        variant: 'destructive',
+      });
+    } finally {
+      setLoading(false);
+    }
+  }, [toast, t]);
+
+  useEffect(() => {
+    loadUsers();
+  }, [loadUsers]);
 
   const filteredUsers = useMemo(() => {
     const normalizedSearch = searchTerm.trim().toLowerCase();
-    return mockUsers.filter((user) => {
+    return users.filter((user) => {
       const matchesSearch =
         normalizedSearch.length === 0 ||
-        user.name.toLowerCase().includes(normalizedSearch) ||
         user.email.toLowerCase().includes(normalizedSearch);
       const matchesRole = roleFilter === 'all' || user.role === roleFilter;
       return matchesSearch && matchesRole;
     });
-  }, [mockUsers, roleFilter, searchTerm]);
+  }, [users, roleFilter, searchTerm]);
 
   const sortedUsers = useMemo(() => {
     return [...filteredUsers].sort((a, b) => {
-      const dateA = new Date(a.dateCreated).getTime();
-      const dateB = new Date(b.dateCreated).getTime();
+      const dateA = new Date(a.created_at).getTime();
+      const dateB = new Date(b.created_at).getTime();
       return sortDirection === 'asc' ? dateA - dateB : dateB - dateA;
     });
   }, [filteredUsers, sortDirection]);
 
   const summary = useMemo(() => {
-    const total = mockUsers.length;
-    const adminCount = mockUsers.filter((user) => user.role === 'Admin').length;
-    const userCount = mockUsers.filter((user) => user.role !== 'Admin').length;
+    const total = users.length;
+    const adminCount = users.filter((user) => user.role === 'superadmin').length;
+    const userCount = users.filter((user) => user.role === 'user').length;
     return { total, adminCount, userCount };
-  }, [mockUsers]);
+  }, [users]);
 
   const handleToggleSort = () => {
     setSortDirection((prev) => (prev === 'asc' ? 'desc' : 'asc'));
   };
 
-  const roleOptions: Array<'all' | 'Admin' | 'User'> = ['all', 'Admin', 'User'];
+  const roleOptions: Array<'all' | RoleOption> = ['all', 'user', 'superadmin'];
+
+  const resetForm = () => {
+    setFormState({
+      id: undefined,
+      email: '',
+      full_name: '',
+      role: 'user',
+    });
+  };
+
+  const openCreateModal = () => {
+    resetForm();
+    setIsFormOpen(true);
+  };
+
+  const openEditModal = (user: AdminUser) => {
+    setFormState({
+      id: user.id,
+      email: user.email,
+      full_name: user.full_name ?? '',
+      role: user.role,
+    });
+    setIsFormOpen(true);
+  };
+
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setSaving(true);
+    try {
+      const payload = {
+        email: formState.email.trim(),
+        full_name: formState.full_name.trim() || null,
+        role: formState.role,
+      };
+
+      let updated: AdminUser;
+      if (formState.id) {
+        updated = await updateAdminUser({ id: formState.id, ...payload });
+        setUsers((prev) => prev.map((user) => (user.id === updated.id ? updated : user)));
+        toast({
+          title: t('admin.updateSuccess'),
+          description: t('admin.updateSuccessDesc'),
+        });
+      } else {
+        updated = await createAdminUser(payload);
+        setUsers((prev) => [updated, ...prev]);
+        toast({
+          title: t('admin.createSuccess'),
+          description: t('admin.createSuccessDesc'),
+        });
+      }
+
+      setIsFormOpen(false);
+      resetForm();
+    } catch (error) {
+      console.error('Failed to save user', error);
+      toast({
+        title: t('common.error', { defaultValue: 'Xəta baş verdi' }),
+        description: t('admin.saveError'),
+        variant: 'destructive',
+      });
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!deleteTarget) return;
+    setDeleting(true);
+    try {
+      await deleteAdminUser(deleteTarget.id);
+      setUsers((prev) => prev.filter((user) => user.id !== deleteTarget.id));
+      toast({
+        title: t('admin.deleteSuccess'),
+        description: t('admin.deleteSuccessDesc'),
+      });
+    } catch (error) {
+      console.error('Failed to delete user', error);
+      toast({
+        title: t('common.error', { defaultValue: 'Xəta baş verdi' }),
+        description: t('admin.deleteError'),
+        variant: 'destructive',
+      });
+    } finally {
+      setDeleting(false);
+      setDeleteTarget(null);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -107,7 +236,7 @@ const SuperAdminPanel = () => {
             <div className="flex justify-between items-center">
               <h1 className="text-4xl font-bold">{t('admin.title')}</h1>
               
-              <Button className="bg-primary hover:bg-primary/90 gap-2">
+              <Button className="bg-primary hover:bg-primary/90 gap-2" onClick={openCreateModal}>
                 <UserPlus className="h-5 w-5" />
                 {t('admin.create')}
               </Button>
@@ -146,7 +275,7 @@ const SuperAdminPanel = () => {
                   <Filter className="h-4 w-4 text-muted-foreground" />
                   <Select
                     value={roleFilter}
-                    onValueChange={(value) => setRoleFilter(value as 'all' | 'Admin' | 'User')}
+                    onValueChange={(value) => setRoleFilter(value as 'all' | RoleOption)}
                   >
                     <SelectTrigger className="w-40">
                       <SelectValue placeholder={t('admin.allRoles')} />
@@ -154,7 +283,7 @@ const SuperAdminPanel = () => {
                     <SelectContent>
                       {roleOptions.map((option) => (
                         <SelectItem key={option} value={option}>
-                          {option === 'all' ? t('admin.allRoles') : option}
+                          {option === 'all' ? t('admin.allRoles') : t(`admin.roles.${option}`)}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -178,7 +307,6 @@ const SuperAdminPanel = () => {
                 <TableHeader>
                   <TableRow className="hover:bg-secondary/50">
                     <TableHead>{t('admin.userId')}</TableHead>
-                    <TableHead>{t('admin.name')}</TableHead>
                     <TableHead>{t('admin.email')}</TableHead>
                     <TableHead>{t('admin.role')}</TableHead>
                     <TableHead className="hidden sm:table-cell">{t('admin.dateCreated')}</TableHead>
@@ -187,7 +315,16 @@ const SuperAdminPanel = () => {
                 </TableHeader>
                 <TableBody>
                   <TooltipProvider>
-                    {sortedUsers.length > 0 ? (
+                    {loading ? (
+                      <TableRow>
+                        <TableCell colSpan={5} className="py-10 text-center text-muted-foreground">
+                          <div className="flex items-center justify-center gap-2">
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                            {t('common.loading')}
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ) : sortedUsers.length > 0 ? (
                       sortedUsers.map((user, index) => (
                         <motion.tr
                           key={user.id}
@@ -199,21 +336,20 @@ const SuperAdminPanel = () => {
                           <TableCell className="font-mono font-semibold text-primary">
                             {user.id}
                           </TableCell>
-                          <TableCell className="font-medium">{user.name}</TableCell>
                           <TableCell className="text-muted-foreground">{user.email}</TableCell>
                           <TableCell>
                             <span
                               className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                                user.role === 'Admin'
+                                user.role === 'superadmin'
                                   ? 'bg-primary/10 text-primary'
                                   : 'bg-secondary text-muted-foreground'
                               }`}
                             >
-                              {user.role}
+                              {t(`admin.roles.${user.role}`)}
                             </span>
                           </TableCell>
                           <TableCell className="hidden text-muted-foreground sm:table-cell">
-                            {user.dateCreated}
+                            {new Date(user.created_at).toLocaleDateString()}
                           </TableCell>
                           <TableCell className="text-right space-x-2">
                             <Tooltip>
@@ -223,6 +359,7 @@ const SuperAdminPanel = () => {
                                   size="icon"
                                   className="hover:bg-secondary hover:text-primary"
                                   aria-label={t('admin.edit')}
+                                  onClick={() => openEditModal(user)}
                                 >
                                   <Edit className="h-4 w-4" />
                                 </Button>
@@ -236,6 +373,7 @@ const SuperAdminPanel = () => {
                                   size="icon"
                                   className="hover:bg-destructive/10 hover:text-destructive"
                                   aria-label={t('admin.delete')}
+                                  onClick={() => setDeleteTarget(user)}
                                 >
                                   <Trash2 className="h-4 w-4" />
                                 </Button>
@@ -259,6 +397,104 @@ const SuperAdminPanel = () => {
           </motion.div>
         </div>
       </div>
+
+      {/* Create / Edit dialog */}
+      <Dialog open={isFormOpen} onOpenChange={(open) => {
+        setIsFormOpen(open);
+        if (!open) {
+          resetForm();
+        }
+      }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>
+              {formState.id ? t('admin.editUserTitle') : t('admin.createUserTitle')}
+            </DialogTitle>
+            <DialogDescription>
+              {formState.id ? t('admin.editUserSubtitle') : t('admin.createUserSubtitle')}
+            </DialogDescription>
+          </DialogHeader>
+
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="email">{t('admin.email')}</Label>
+              <Input
+                id="email"
+                type="email"
+                required
+                value={formState.email}
+                onChange={(event) => setFormState((prev) => ({ ...prev, email: event.target.value }))}
+                disabled={saving}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="full_name">{t('admin.fullName')}</Label>
+              <Input
+                id="full_name"
+                value={formState.full_name}
+                onChange={(event) => setFormState((prev) => ({ ...prev, full_name: event.target.value }))}
+                disabled={saving}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="role">{t('admin.role')}</Label>
+              <Select
+                value={formState.role}
+                onValueChange={(value) => setFormState((prev) => ({ ...prev, role: value as RoleOption }))}
+                disabled={saving}
+              >
+                <SelectTrigger id="role">
+                  <SelectValue placeholder={t('admin.role')} />
+                </SelectTrigger>
+                <SelectContent>
+                  {( ['user', 'superadmin'] as RoleOption[] ).map((role) => (
+                    <SelectItem key={role} value={role}>
+                      {t(`admin.roles.${role}`)}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <DialogFooter>
+              <Button type="button" variant="outline" onClick={() => setIsFormOpen(false)} disabled={saving}>
+                {t('modal.close')}
+              </Button>
+              <Button type="submit" disabled={saving}>
+                {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                {formState.id ? t('admin.saveChanges') : t('admin.create')}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete confirmation */}
+      <AlertDialog open={Boolean(deleteTarget)} onOpenChange={(open) => !open && !deleting && setDeleteTarget(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t('admin.deleteConfirmTitle')}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {t('admin.deleteConfirmDesc', { email: deleteTarget?.email ?? '' })}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deleting} onClick={() => setDeleteTarget(null)}>
+              {t('modal.close')}
+            </AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={handleDelete}
+              disabled={deleting}
+            >
+              {deleting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              {t('admin.delete')}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };

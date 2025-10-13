@@ -61,6 +61,12 @@ docker compose up --build
 
 - `raspberry-pi/README.md` faylında Raspberry Pi-dən Lovable Cloud-a məlumat göndərilməsi üçün addım-addım təlimat var.
 
+**SuperAdmin Panel**
+
+- `/admin` səhifəsi yalnız Supabase-də `superadmin` rolu olan istifadəçilər üçün nəzərdə tutulub.
+- İstifadəçiləri əlavə etmək/redaktə etmək/silmək üçün Lovable Cloud-da edge function `manage-users` deploy olunmuş olmalıdır və superadmin hesabı ilə daxil olmalısınız.
+- Yeni istifadəçi yaradılarkən email dərhal təsdiqlənir və rolu `İstifadəçi` və ya `Superadmin` kimi seçilə bilər.
+
 **Use GitHub Codespaces**
 
 - Navigate to the main page of your repository.
