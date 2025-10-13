@@ -48,6 +48,7 @@ const resources = {
       // Dashboard
       dashboard: {
         detect: 'Detect 🌱',
+        scan: 'Scan',
         upload: 'Şəkil yüklə',
         previousDetects: 'Əvvəlki Detektlər',
         detectId: 'Detekt ID',
@@ -71,6 +72,9 @@ const resources = {
           humidity: 'Rütubət',
         },
         loadError: 'Deteksiyaları yükləmək mümkün olmadı.',
+        liveStream: 'Canlı yayın',
+        streamNote: 'Raspberry Pi streaming xidmətinin aktiv olduğuna və əlçatan olduğuna əmin olun.',
+        streamUnavailable: 'Stream URL konfiqurasiya edilməyib.',
       },
       
       // Admin
@@ -191,6 +195,7 @@ const resources = {
       // Dashboard
       dashboard: {
         detect: 'Detect 🌱',
+        scan: 'Scan',
         upload: 'Upload Photo',
         previousDetects: 'Previous Detects',
         detectId: 'Detect ID',
@@ -214,6 +219,9 @@ const resources = {
           humidity: 'Humidity',
         },
         loadError: 'Failed to load detections.',
+        liveStream: 'Live Stream',
+        streamNote: 'Ensure the Raspberry Pi streaming service is running and accessible.',
+        streamUnavailable: 'Stream URL not configured.',
       },
       
       // Admin

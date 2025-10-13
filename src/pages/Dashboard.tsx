@@ -6,7 +6,7 @@ import { Card } from '@/components/ui/card';
 import Navbar from '@/components/Navbar';
 import DetectCard from '@/components/DetectCard';
 import Modal from '@/components/Modal';
-import { Upload } from 'lucide-react';
+import { Upload, Video } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { normalizeDetection } from '@/lib/detections';
@@ -25,6 +25,7 @@ const Dashboard = () => {
   const { t } = useTranslation();
   const { toast } = useToast();
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isStreamModalOpen, setIsStreamModalOpen] = useState(false);
   const [detections, setDetections] = useState<Detection[]>([]);
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState<'all' | DetectionStatus>('all');
@@ -116,6 +117,11 @@ const Dashboard = () => {
     setIsModalOpen(true);
   };
 
+  const handleStream = () => {
+    logger.debug('Dashboard', 'Scan action triggered');
+    setIsStreamModalOpen(true);
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
@@ -132,13 +138,23 @@ const Dashboard = () => {
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
             >
-              <Button
-                size="lg"
-                onClick={handleDetect}
-                className="bg-primary hover:bg-primary/90 text-2xl px-12 py-8 h-auto animate-glow"
-              >
-                {t('dashboard.detect')}
-              </Button>
+              <div className="flex flex-col gap-4 sm:flex-row sm:justify-center">
+                <Button
+                  size="lg"
+                  onClick={handleStream}
+                  className="bg-secondary hover:bg-secondary/80 gap-3 text-2xl px-12 py-8 h-auto"
+                >
+                  <Video className="h-6 w-6" />
+                  {t('dashboard.scan', { defaultValue: 'Scan' })}
+                </Button>
+                <Button
+                  size="lg"
+                  onClick={handleDetect}
+                  className="bg-primary hover:bg-primary/90 text-2xl px-12 py-8 h-auto animate-glow"
+                >
+                  {t('dashboard.detect')}
+                </Button>
+              </div>
             </motion.div>
             
             <motion.div
@@ -230,6 +246,34 @@ const Dashboard = () => {
             {t('modal.inDevelopment')}
           </p>
         </div>
+      </Modal>
+
+      <Modal
+        isOpen={isStreamModalOpen}
+        onClose={() => setIsStreamModalOpen(false)}
+        title={t('dashboard.liveStream', { defaultValue: 'Live Stream' })}
+      >
+        <div className="aspect-video w-full overflow-hidden rounded-lg bg-black">
+          {import.meta.env.VITE_STREAM_URL ? (
+            <iframe
+              src={import.meta.env.VITE_STREAM_URL}
+              title="Raspberry Pi Stream"
+              className="h-full w-full"
+              allow="autoplay"
+            />
+          ) : (
+            <div className="flex h-full items-center justify-center">
+              <p className="text-muted-foreground text-sm">
+                {t('dashboard.streamUnavailable', { defaultValue: 'Stream URL not configured.' })}
+              </p>
+            </div>
+          )}
+        </div>
+        <p className="mt-4 text-sm text-muted-foreground">
+          {t('dashboard.streamNote', {
+            defaultValue: 'Ensure the Raspberry Pi streaming service is running and accessible.',
+          })}
+        </p>
       </Modal>
     </div>
   );
