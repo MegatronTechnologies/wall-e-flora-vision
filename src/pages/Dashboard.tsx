@@ -29,36 +29,6 @@ const Dashboard = () => {
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState<'all' | DetectionStatus>('all');
 
-  useEffect(() => {
-    logger.info('Dashboard', 'Initializing dashboard page');
-    fetchDetections();
-    
-    // Subscribe to real-time updates
-    const channel = supabase
-      .channel('detections-changes')
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'detections'
-        },
-        () => {
-          logger.debug('Dashboard', 'Realtime INSERT received, refreshing detections');
-          fetchDetections();
-          toast({
-            title: 'New detection received',
-            description: 'A new detection has been added from Raspberry Pi',
-          });
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [fetchDetections, toast]);
-
   const fetchDetections = useCallback(async () => {
     logger.debug('Dashboard', 'Fetching detections');
     setLoading(true);
@@ -90,7 +60,37 @@ const Dashboard = () => {
     } finally {
       setLoading(false);
     }
-  }, [toast]);
+  }, [toast, t]);
+
+  useEffect(() => {
+    logger.info('Dashboard', 'Initializing dashboard page');
+    fetchDetections();
+    
+    // Subscribe to real-time updates
+    const channel = supabase
+      .channel('detections-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'detections'
+        },
+        () => {
+          logger.debug('Dashboard', 'Realtime INSERT received, refreshing detections');
+          fetchDetections();
+          toast({
+            title: 'New detection received',
+            description: 'A new detection has been added from Raspberry Pi',
+          });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [fetchDetections, toast]);
 
   const filteredDetections = useMemo(() => {
     if (statusFilter === 'all') {
