@@ -14,6 +14,71 @@ export type Database = {
   }
   public: {
     Tables: {
+      detection_images: {
+        Row: {
+          created_at: string
+          detection_id: string
+          id: string
+          image_url: string
+          order_num: number
+        }
+        Insert: {
+          created_at?: string
+          detection_id: string
+          id?: string
+          image_url: string
+          order_num: number
+        }
+        Update: {
+          created_at?: string
+          detection_id?: string
+          id?: string
+          image_url?: string
+          order_num?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "detection_images_detection_id_fkey"
+            columns: ["detection_id"]
+            isOneToOne: false
+            referencedRelation: "detections"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      detections: {
+        Row: {
+          confidence: number | null
+          created_at: string
+          device_id: string
+          id: string
+          image_url: string
+          metadata: Json | null
+          status: Database["public"]["Enums"]["detection_status"]
+          user_id: string | null
+        }
+        Insert: {
+          confidence?: number | null
+          created_at?: string
+          device_id: string
+          id?: string
+          image_url: string
+          metadata?: Json | null
+          status: Database["public"]["Enums"]["detection_status"]
+          user_id?: string | null
+        }
+        Update: {
+          confidence?: number | null
+          created_at?: string
+          device_id?: string
+          id?: string
+          image_url?: string
+          metadata?: Json | null
+          status?: Database["public"]["Enums"]["detection_status"]
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string
@@ -74,6 +139,7 @@ export type Database = {
     }
     Enums: {
       app_role: "user" | "superadmin"
+      detection_status: "noObjects" | "healthy" | "diseased" | "mixed"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -202,6 +268,7 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["user", "superadmin"],
+      detection_status: ["noObjects", "healthy", "diseased", "mixed"],
     },
   },
 } as const
