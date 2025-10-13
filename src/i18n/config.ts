@@ -80,6 +80,15 @@ const resources = {
         create: 'Yarat',
         edit: 'Redaktə et',
         delete: 'Sil',
+        totalUsers: 'Ümumi istifadəçi sayı',
+        adminsCount: 'Admin sayı',
+        usersCount: 'İstifadəçi sayı',
+        searchPlaceholder: 'Ad və ya email ilə axtar',
+        allRoles: 'Bütün rollar',
+        sortNewest: 'Ən yenini göstər',
+        sortOldest: 'Ən köhnəni göstər',
+        actions: 'Əməliyyatlar',
+        emptyState: 'Seçilmiş filtrə uyğun istifadəçi tapılmadı.',
       },
       
       // Modal
@@ -167,6 +176,15 @@ const resources = {
         create: 'Create',
         edit: 'Edit',
         delete: 'Delete',
+        totalUsers: 'Total users',
+        adminsCount: 'Admins',
+        usersCount: 'Regular users',
+        searchPlaceholder: 'Search by name or email',
+        allRoles: 'All roles',
+        sortNewest: 'Show newest first',
+        sortOldest: 'Show oldest first',
+        actions: 'Actions',
+        emptyState: 'No users match the current filters.',
       },
       
       // Modal
