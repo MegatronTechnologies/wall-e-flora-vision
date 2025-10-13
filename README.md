@@ -66,6 +66,7 @@ docker compose up --build
 - `/admin` səhifəsi yalnız Supabase-də `superadmin` rolu olan istifadəçilər üçün nəzərdə tutulub.
 - İstifadəçiləri əlavə etmək/redaktə etmək/silmək üçün Lovable Cloud-da edge function `manage-users` deploy olunmuş olmalıdır və superadmin hesabı ilə daxil olmalısınız.
 - Yeni istifadəçi yaradılarkən email dərhal təsdiqlənir və rolu `İstifadəçi` və ya `Superadmin` kimi seçilə bilər.
+- Lokal development üçün `.env` faylında `VITE_SUPABASE_URL` və `VITE_SUPABASE_PUBLISHABLE_KEY` dəyərlərini təyin edib, login forması vasitəsilə Supabase Auth ilə daxil olun. Sessiya yaranmadıqda SuperAdmin paneli avtomatik bloklanacaq.
 
 **Use GitHub Codespaces**
 

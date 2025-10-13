@@ -1,61 +1,82 @@
-import { useEffect, useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-import { useTranslation } from 'react-i18next';
-import { motion } from 'framer-motion';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import Navbar from '@/components/Navbar';
-import { Bot } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
-import { logger } from '@/lib/logger';
+import { useEffect, useState } from "react";
+import { useNavigate, Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
+import { motion } from "framer-motion";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import Navbar from "@/components/Navbar";
+import { Bot } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { logger } from "@/lib/logger";
+import { useAuth } from "@/context/AuthContext";
 
 const Signup = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const { signUp } = useAuth();
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
-    logger.info('SignupPage', 'Rendered signup page');
+    logger.info("SignupPage", "Rendered signup page");
   }, []);
 
-  const handleSignup = (event: React.FormEvent) => {
+  const handleSignup = async (event: React.FormEvent) => {
     event.preventDefault();
-    logger.debug('SignupPage', 'Attempting signup', { email });
+    logger.debug("SignupPage", "Attempting signup", { email });
 
     if (!name || !email || !password) {
-      logger.warn('SignupPage', 'Missing signup fields', { nameProvided: Boolean(name), emailProvided: Boolean(email) });
+      logger.warn("SignupPage", "Missing signup fields", { nameProvided: Boolean(name), emailProvided: Boolean(email) });
       toast({
-        title: t('common.error'),
-        description: t('auth.signupMissing', { defaultValue: 'Bütün sahələri doldurun.' }),
-        variant: 'destructive',
+        title: t("common.error"),
+        description: t("auth.signupMissing", { defaultValue: "Bütün sahələri doldurun." }),
+        variant: "destructive",
       });
       return;
     }
 
     if (password.length < 6) {
-      logger.warn('SignupPage', 'Password too short');
+      logger.warn("SignupPage", "Password too short");
       toast({
-        title: t('common.error'),
-        description: t('auth.passwordTooShort', { defaultValue: 'Parol ən azı 6 simvoldan ibarət olmalıdır.' }),
-        variant: 'destructive',
+        title: t("common.error"),
+        description: t("auth.passwordTooShort", { defaultValue: "Parol ən azı 6 simvoldan ibarət olmalıdır." }),
+        variant: "destructive",
       });
       return;
     }
 
+    setSubmitting(true);
     try {
-      logger.info('SignupPage', 'Signup successful, redirecting to dashboard', email);
-      navigate('/dashboard');
-    } catch (error) {
-      logger.error('SignupPage', 'Unexpected error while signing up', error);
+      const { user, role } = await signUp(name, email, password);
+      if (!user) {
+        toast({
+          title: t("signup"),
+          description: t("auth.verifyEmail", { defaultValue: "Lütfən emailinizə göndərilən təsdiq linkinə baxın." }),
+        });
+        logger.warn("SignupPage", "No user returned after signup; email verification likely required");
+        return;
+      }
+
       toast({
-        title: t('common.error'),
-        description: t('auth.genericError', { defaultValue: 'Something went wrong while logging in.' }),
-        variant: 'destructive',
+        title: t("signup"),
+        description: t("auth.signupSuccess", { defaultValue: "Hesab yaradıldı." }),
       });
+      const destination = role === "superadmin" ? "/admin" : "/dashboard";
+      logger.info("SignupPage", "Signup successful, redirecting", destination);
+      navigate(destination, { replace: true });
+    } catch (error) {
+      logger.error("SignupPage", "Unexpected error while signing up", error);
+      toast({
+        title: t("common.error"),
+        description: error instanceof Error ? error.message : t("auth.genericError", { defaultValue: "Something went wrong while logging in." }),
+        variant: "destructive",
+      });
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -123,8 +144,9 @@ const Signup = () => {
                 type="submit"
                 className="w-full bg-primary hover:bg-primary/90"
                 size="lg"
+                disabled={submitting}
               >
-                {t('signup')}
+                {submitting ? t("common.loading") : t("signup")}
               </Button>
             </form>
 

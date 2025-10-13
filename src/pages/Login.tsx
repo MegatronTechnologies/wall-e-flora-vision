@@ -1,51 +1,73 @@
-import { useEffect, useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-import { useTranslation } from 'react-i18next';
-import { motion } from 'framer-motion';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import Navbar from '@/components/Navbar';
-import { Bot } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
-import { logger } from '@/lib/logger';
+import { useEffect, useState } from "react";
+import { useNavigate, Link, useLocation } from "react-router-dom";
+import { useTranslation } from "react-i18next";
+import { motion } from "framer-motion";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import Navbar from "@/components/Navbar";
+import { Bot } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { logger } from "@/lib/logger";
+import { useAuth } from "@/context/AuthContext";
 
 const Login = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const location = useLocation();
   const { toast } = useToast();
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const { signIn, user, role, loading } = useAuth();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
-    logger.info('LoginPage', 'Rendered login page');
+    logger.info("LoginPage", "Rendered login page");
   }, []);
 
-  const handleLogin = (event: React.FormEvent) => {
+  useEffect(() => {
+    if (!loading && user) {
+      const destination = role === "superadmin" ? "/admin" : "/dashboard";
+      logger.debug("LoginPage", "Already authenticated, redirecting", destination);
+      navigate(destination, { replace: true });
+    }
+  }, [loading, navigate, role, user]);
+
+  const handleLogin = async (event: React.FormEvent) => {
     event.preventDefault();
-    logger.debug('LoginPage', 'Attempting login', { email });
+    logger.debug("LoginPage", "Attempting login", { email });
 
     if (!email || !password) {
-      logger.warn('LoginPage', 'Missing credentials');
+      logger.warn("LoginPage", "Missing credentials");
       toast({
-        title: t('common.error', { defaultValue: 'Xəta baş verdi' }),
-        description: t('auth.missingCredentials', { defaultValue: 'Email və parol boş ola bilməz' }),
-        variant: 'destructive',
+        title: t("common.error", { defaultValue: "Xəta baş verdi" }),
+        description: t("auth.missingCredentials", { defaultValue: "Email və parol boş ola bilməz" }),
+        variant: "destructive",
       });
       return;
     }
 
+    setSubmitting(true);
     try {
-      const isSuperAdmin = email.trim().toLowerCase().includes('superadmin');
-      logger.info('LoginPage', 'Login successful, redirecting', isSuperAdmin ? 'admin' : 'dashboard');
-      navigate(isSuperAdmin ? '/admin' : '/dashboard');
-    } catch (error) {
-      logger.error('LoginPage', 'Unexpected error while logging in', error);
+      const { role: signInRole } = await signIn(email, password);
+      const fromState = location.state as { from?: { pathname: string } } | undefined;
+      const from = fromState?.from?.pathname;
+      const destination = from ?? (signInRole === "superadmin" ? "/admin" : "/dashboard");
+      logger.info("LoginPage", "Login successful, redirecting", destination);
       toast({
-        title: t('common.error', { defaultValue: 'Xəta baş verdi' }),
-        description: t('auth.genericError', { defaultValue: 'Daxil olarkən problem yarandı.' }),
-        variant: 'destructive',
+        title: t("login"),
+        description: t("auth.loginSuccess", { defaultValue: "Uğurla daxil oldunuz." }),
       });
+      navigate(destination, { replace: true });
+    } catch (error) {
+      logger.error("LoginPage", "Error while logging in", error);
+      toast({
+        title: t("common.error", { defaultValue: "Xəta baş verdi" }),
+        description: error instanceof Error ? error.message : t("auth.genericError", { defaultValue: "Daxil olarkən problem yarandı." }),
+        variant: "destructive",
+      });
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -100,16 +122,17 @@ const Login = () => {
               <Button
                 type="submit"
                 className="w-full bg-primary hover:bg-primary/90"
+                disabled={submitting}
                 size="lg"
               >
-                {t('login')}
+                {submitting ? t("common.loading") : t("login")}
               </Button>
             </form>
 
             <div className="text-center text-sm text-muted-foreground">
-              Don't have an account?{' '}
+              Don't have an account?{" "}
               <Link to="/signup" className="text-primary hover:underline">
-                {t('signup')}
+                {t("signup")}
               </Link>
             </div>
           </div>

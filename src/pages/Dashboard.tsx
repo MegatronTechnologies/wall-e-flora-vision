@@ -118,7 +118,7 @@ const Dashboard = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <Navbar isAuthenticated />
+      <Navbar />
       
       <div className="pt-24 pb-12 px-4">
         <div className="container mx-auto max-w-6xl">
