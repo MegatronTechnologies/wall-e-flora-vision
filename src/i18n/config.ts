@@ -8,6 +8,7 @@ const resources = {
         loading: 'Yüklənir...',
         notAvailable: 'Mövcud deyil',
         error: 'Xəta baş verdi',
+        retry: 'Yenidən cəhd et',
       },
       // Navbar
       login: 'Daxil ol',
@@ -187,6 +188,7 @@ const resources = {
         loading: 'Loading...',
         notAvailable: 'N/A',
         error: 'Something went wrong',
+        retry: 'Retry',
       },
       // Navbar
       login: 'Login',
