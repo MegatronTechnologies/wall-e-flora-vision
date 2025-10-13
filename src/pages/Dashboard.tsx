@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
@@ -8,17 +8,8 @@ import Modal from '@/components/Modal';
 import { Upload } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-
-interface Detection {
-  id: string;
-  device_id: string;
-  image_url: string;
-  status: 'noObjects' | 'healthy' | 'diseased' | 'mixed';
-  confidence: number | null;
-  metadata: any;
-  created_at: string;
-  plant_images?: { image_url: string; order_num: number }[];
-}
+import { normalizeDetection } from '@/lib/detections';
+import type { Detection, DetectionQueryResult } from '@/types/detection';
 
 const Dashboard = () => {
   const { t } = useTranslation();
@@ -53,9 +44,9 @@ const Dashboard = () => {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, []);
+  }, [fetchDetections, toast]);
 
-  const fetchDetections = async () => {
+  const fetchDetections = useCallback(async () => {
     try {
       const { data: detectionsData, error } = await supabase
         .from('detections')
@@ -68,7 +59,11 @@ const Dashboard = () => {
 
       if (error) throw error;
 
-      setDetections(detectionsData || []);
+      const normalized = (detectionsData ?? []).map((row) =>
+        normalizeDetection(row as DetectionQueryResult)
+      );
+
+      setDetections(normalized);
     } catch (error) {
       console.error('Error fetching detections:', error);
       toast({
@@ -79,7 +74,7 @@ const Dashboard = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [toast]);
 
   const handleDetect = () => {
     setIsModalOpen(true);

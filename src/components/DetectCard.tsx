@@ -1,19 +1,9 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
 import { Card } from './ui/card';
 import Modal from './Modal';
-
-interface Detection {
-  id: string;
-  device_id: string;
-  image_url: string;
-  status: 'noObjects' | 'healthy' | 'diseased' | 'mixed';
-  confidence: number | null;
-  metadata: any;
-  created_at: string;
-  plant_images?: { image_url: string; order_num: number }[];
-}
+import type { Detection } from '@/types/detection';
 
 interface DetectCardProps {
   detection: Detection;
@@ -23,6 +13,15 @@ interface DetectCardProps {
 const DetectCard = ({ detection, index }: DetectCardProps) => {
   const { t } = useTranslation();
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const metadataEntries = useMemo(() => {
+    const entries = Object.entries(detection.metadata ?? {});
+    return entries.filter(([key, value]) => value !== undefined && value !== null)
+      .map(([key, value]) => ({
+        key,
+        label: key.charAt(0).toUpperCase() + key.slice(1),
+        value,
+      }));
+  }, [detection.metadata]);
   
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -37,16 +36,16 @@ const DetectCard = ({ detection, index }: DetectCardProps) => {
   
   const displayId = `#${detection.id.substring(0, 8)}`;
   const { status } = detection;
-  const confidence = detection.confidence || 0;
+  const confidence = detection.confidence ?? undefined;
 
-  const statusColors = {
+  const statusColors: Record<Detection['status'], string> = {
     noObjects: 'text-info',
     healthy: 'text-green-500',
     diseased: 'text-primary',
     mixed: 'text-yellow-500',
   };
 
-  const statusBgColors = {
+  const statusBgColors: Record<Detection['status'], string> = {
     noObjects: 'bg-info/10',
     healthy: 'bg-green-500/10',
     diseased: 'bg-primary/10',
@@ -123,12 +122,14 @@ const DetectCard = ({ detection, index }: DetectCardProps) => {
             
             <div className="p-4 bg-secondary rounded-lg">
               <p className="text-sm text-muted-foreground mb-2">{t('dashboard.confidence')}</p>
-              <p className="font-semibold text-primary">{confidence.toFixed(1)}%</p>
+              <p className="font-semibold text-primary">
+                {typeof confidence === 'number' ? `${confidence.toFixed(1)}%` : t('common.notAvailable', { defaultValue: '—' })}
+              </p>
             </div>
           </div>
           
           <div className="grid grid-cols-3 gap-3">
-            {detection.plant_images && detection.plant_images.length > 0 ? (
+            {detection.plant_images.length > 0 ? (
               detection.plant_images
                 .sort((a, b) => a.order_num - b.order_num)
                 .map((img) => (
@@ -149,16 +150,15 @@ const DetectCard = ({ detection, index }: DetectCardProps) => {
             )}
           </div>
           
-          {detection.metadata && Object.keys(detection.metadata).length > 0 && (
+          {metadataEntries.length > 0 && (
             <div className="p-4 bg-secondary rounded-lg">
-              <p className="text-sm text-muted-foreground mb-2">Additional Info</p>
+              <p className="text-sm text-muted-foreground mb-2">{t('dashboard.additionalInfo', { defaultValue: 'Additional Info' })}</p>
               <div className="text-sm space-y-1">
-                {detection.metadata.temperature && (
-                  <p>Temperature: {detection.metadata.temperature}°C</p>
-                )}
-                {detection.metadata.humidity && (
-                  <p>Humidity: {detection.metadata.humidity}%</p>
-                )}
+                {metadataEntries.map(({ key, label, value }) => (
+                  <p key={key}>
+                    {label}: {String(value)}
+                  </p>
+                ))}
               </div>
             </div>
           )}
