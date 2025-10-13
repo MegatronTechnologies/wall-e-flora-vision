@@ -42,6 +42,25 @@ npm run dev
 - Click the "Edit" button (pencil icon) at the top right of the file view.
 - Make your changes and commit the changes.
 
+### Run the project inside Docker
+
+When you want to hack locally without affecting other containers on your machine, you can run the Vite dev server in Docker.
+
+```sh
+# Build the image and start the dev server
+docker compose up --build
+
+# Visit the app on http://localhost:43173
+```
+
+- The container listens on `43173` by default so it stays out of the way of other projects. Set `DEV_PORT=your_port` before running `docker compose up` if you need a different mapping.
+- Hot reload works because the project folder is bind-mounted into the container; install dependencies inside the container only.
+- When you are done, run `docker compose down` to stop and remove the dev container.
+
+**Integrate Raspberry Pi**
+
+- `raspberry-pi/README.md` faylında Raspberry Pi-dən Lovable Cloud-a məlumat göndərilməsi üçün addım-addım təlimat var.
+
 **Use GitHub Codespaces**
 
 - Navigate to the main page of your repository.

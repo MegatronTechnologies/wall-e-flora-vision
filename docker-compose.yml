@@ -1,0 +1,24 @@
+name: wall-e-flora-vision-stack
+
+services:
+  web:
+    container_name: wall-e-flora-vision-web
+    build:
+      context: .
+      target: dev
+    image: wall-e-flora-vision:dev
+    environment:
+      - NODE_ENV=development
+      - VITE_PORT=${DEV_PORT:-43173}
+    command: npm run dev -- --host 0.0.0.0
+    ports:
+      - "${DEV_PORT:-43173}:${DEV_PORT:-43173}"
+    volumes:
+      - .:/app
+      - /app/node_modules
+    networks:
+      - wall-e-flora-vision-net
+
+networks:
+  wall-e-flora-vision-net:
+    driver: bridge

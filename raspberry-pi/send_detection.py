@@ -8,14 +8,25 @@ Requirements:
 
 Usage:
   python send_detection.py --device-id raspi-001 --api-key YOUR_API_KEY
+
+Alternatively, mühitdə aşağıdakı dəyişənləri təyin edib parametr vermədən də işlədə bilərsiniz:
+  export RASPBERRY_PI_DEVICE_ID=raspi-001
+  export RASPBERRY_PI_API_KEY=YOUR_API_KEY
+  python send_detection.py --main-image sample.jpg --status healthy
 """
 
-import requests
 import base64
 import json
 import argparse
-from pathlib import Path
+import os
 from typing import Optional, List, Dict, Any
+
+import requests
+
+DEFAULT_ENDPOINT = "https://wmzdgcumvdnqodryhmxs.supabase.co/functions/v1/submit-detection"
+API_KEY_ENV = "RASPBERRY_PI_API_KEY"
+DEVICE_ID_ENV = "RASPBERRY_PI_DEVICE_ID"
+ENDPOINT_ENV = "RASPBERRY_PI_ENDPOINT"
 
 class DetectionSender:
     def __init__(self, api_key: str, device_id: str, endpoint: str):
@@ -129,11 +140,10 @@ class DetectionSender:
 
 def main():
     parser = argparse.ArgumentParser(description='Send detection data to Lovable Cloud')
-    parser.add_argument('--device-id', required=True, help='Raspberry Pi device ID')
-    parser.add_argument('--api-key', required=True, help='API key for authentication')
+    parser.add_argument('--device-id', help='Raspberry Pi device ID (or set env RASPBERRY_PI_DEVICE_ID)')
+    parser.add_argument('--api-key', help='API key for authentication (or set env RASPBERRY_PI_API_KEY)')
     parser.add_argument('--endpoint', 
-                       default='https://wmzdgcumvdnqodryhmxs.supabase.co/functions/v1/submit-detection',
-                       help='Edge function endpoint URL')
+                       help='Edge function endpoint URL (or set env RASPBERRY_PI_ENDPOINT)')
     parser.add_argument('--main-image', required=True, help='Path to main detection image')
     parser.add_argument('--status', required=True, 
                        choices=['noObjects', 'healthy', 'diseased', 'mixed'],
@@ -152,11 +162,28 @@ def main():
     if args.humidity is not None:
         metadata['humidity'] = args.humidity
     
+    # Resolve credentials and endpoint (prefer CLI -> env vars -> defaults)
+    api_key = args.api_key or os.getenv(API_KEY_ENV)
+    if not api_key:
+        raise ValueError(
+            f"API açarı tapılmadı. "
+            f"`--api-key` parametrini verin və ya {API_KEY_ENV} mühit dəyişənini təyin edin."
+        )
+
+    device_id = args.device_id or os.getenv(DEVICE_ID_ENV)
+    if not device_id:
+        raise ValueError(
+            f"Cihaz ID-si tapılmadı. "
+            f"`--device-id` parametrini verin və ya {DEVICE_ID_ENV} mühit dəyişənini təyin edin."
+        )
+
+    endpoint = args.endpoint or os.getenv(ENDPOINT_ENV) or DEFAULT_ENDPOINT
+
     # Create sender and send detection
     sender = DetectionSender(
-        api_key=args.api_key,
-        device_id=args.device_id,
-        endpoint=args.endpoint
+        api_key=api_key,
+        device_id=device_id,
+        endpoint=endpoint
     )
     
     result = sender.send_detection(

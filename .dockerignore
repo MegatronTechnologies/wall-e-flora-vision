@@ -1,0 +1,10 @@
+.git
+.gitignore
+.env
+node_modules
+dist
+build
+tmp
+*.log
+supabase/.env
+supabase/.branches
