@@ -6,7 +6,7 @@ import { Card } from "@/components/ui/card";
 import Navbar from "@/components/Navbar";
 import DetectCard from "@/components/DetectCard";
 import Modal from "@/components/Modal";
-import { Upload, Video, Loader2 } from "lucide-react";
+import { Video, Loader2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -432,25 +432,6 @@ const Dashboard = () => {
                     <Video className="h-6 w-6" />
                     {t("dashboard.scan", { defaultValue: "Scan" })}
                   </Button>
-                  <Button
-                    size="lg"
-                    onClick={handleDetect}
-                    disabled={isDetecting}
-                    className="bg-primary hover:bg-primary/90 text-2xl px-6 py-5 animate-glow"
-                  >
-                    {isDetecting && <Loader2 className="mr-2 h-5 w-5 animate-spin" />}
-                    {t("dashboard.detect")}
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="lg"
-                    onClick={handleDetect}
-                    disabled={isDetecting}
-                    className="border-border gap-2 px-6 py-5"
-                  >
-                    <Upload className="h-5 w-5" />
-                    {t("dashboard.upload")}
-                  </Button>
                 </div>
               </div>
             </div>
@@ -540,7 +521,18 @@ const Dashboard = () => {
         onClose={() => setIsStreamModalOpen(false)}
         title={t("dashboard.liveStream", { defaultValue: "Live Stream" })}
       >
-        <div className="aspect-video w-full overflow-hidden rounded-lg bg-black">
+        <div className="relative aspect-video w-full overflow-hidden rounded-lg bg-black">
+          <div className="absolute right-3 top-3 z-10">
+            <Button
+              size="sm"
+              onClick={handleDetect}
+              disabled={isDetecting}
+              className="bg-primary hover:bg-primary/90 text-base"
+            >
+              {isDetecting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              {t("dashboard.detect")}
+            </Button>
+          </div>
           {import.meta.env.VITE_STREAM_URL ? (
             <iframe
               src={import.meta.env.VITE_STREAM_URL}
