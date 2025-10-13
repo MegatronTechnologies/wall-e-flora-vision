@@ -1,7 +1,8 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
 import Navbar from '@/components/Navbar';
 import DetectCard from '@/components/DetectCard';
 import Modal from '@/components/Modal';
@@ -9,7 +10,15 @@ import { Upload } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { normalizeDetection } from '@/lib/detections';
-import type { Detection, DetectionQueryResult } from '@/types/detection';
+import type { Detection, DetectionQueryResult, DetectionStatus } from '@/types/detection';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Skeleton } from '@/components/ui/skeleton';
 
 const Dashboard = () => {
   const { t } = useTranslation();
@@ -17,6 +26,7 @@ const Dashboard = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [detections, setDetections] = useState<Detection[]>([]);
   const [loading, setLoading] = useState(true);
+   const [statusFilter, setStatusFilter] = useState<'all' | DetectionStatus>('all');
 
   useEffect(() => {
     fetchDetections();
@@ -47,6 +57,7 @@ const Dashboard = () => {
   }, [fetchDetections, toast]);
 
   const fetchDetections = useCallback(async () => {
+    setLoading(true);
     try {
       const { data: detectionsData, error } = await supabase
         .from('detections')
@@ -75,6 +86,25 @@ const Dashboard = () => {
       setLoading(false);
     }
   }, [toast]);
+
+  const filteredDetections = useMemo(() => {
+    if (statusFilter === 'all') {
+      return detections;
+    }
+
+    return detections.filter((detection) => detection.status === statusFilter);
+  }, [detections, statusFilter]);
+
+  const statusOptions: Array<{ value: 'all' | DetectionStatus; label: string }> = useMemo(
+    () => [
+      { value: 'all', label: t('dashboard.allStatuses', { defaultValue: 'All statuses' }) },
+      { value: 'noObjects', label: t('dashboard.noObjects') },
+      { value: 'healthy', label: t('dashboard.healthy') },
+      { value: 'diseased', label: t('dashboard.diseased') },
+      { value: 'mixed', label: t('dashboard.mixed') },
+    ],
+    [t],
+  );
 
   const handleDetect = () => {
     setIsModalOpen(true);
@@ -124,18 +154,50 @@ const Dashboard = () => {
           {/* Previous Detects */}
           <div className="space-y-6">
             <h2 className="text-3xl font-bold">{t('dashboard.previousDetects')}</h2>
+
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <p className="text-sm text-muted-foreground">
+                {t('dashboard.filterByStatus', { defaultValue: 'Filter by status' })}
+              </p>
+              <Select
+                value={statusFilter}
+                onValueChange={(value) => setStatusFilter(value as 'all' | DetectionStatus)}
+              >
+                <SelectTrigger className="w-full sm:w-56">
+                  <SelectValue placeholder={t('dashboard.allStatuses', { defaultValue: 'All statuses' })} />
+                </SelectTrigger>
+                <SelectContent>
+                  {statusOptions.map((option) => (
+                    <SelectItem key={option.value} value={option.value}>
+                      {option.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
             
             {loading ? (
-              <div className="text-center py-12">
-                <p className="text-muted-foreground">{t('common.loading')}</p>
+              <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+                {Array.from({ length: 6 }).map((_, idx) => (
+                  <Card key={idx} className="p-6 space-y-4 bg-card">
+                    <Skeleton className="h-4 w-24" />
+                    <Skeleton className="h-4 w-32" />
+                    <Skeleton className="h-4 w-28" />
+                    <Skeleton className="h-24 w-full rounded-lg" />
+                  </Card>
+                ))}
               </div>
-            ) : detections.length === 0 ? (
-              <div className="text-center py-12">
-                <p className="text-muted-foreground">No detections yet. Waiting for Raspberry Pi data...</p>
+            ) : filteredDetections.length === 0 ? (
+              <div className="text-center py-12 rounded-lg border border-dashed border-border">
+                <p className="text-muted-foreground">
+                  {t('dashboard.noDetections', {
+                    defaultValue: 'No detections yet. Waiting for Raspberry Pi data...',
+                  })}
+                </p>
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {detections.map((detection, index) => (
+                {filteredDetections.map((detection, index) => (
                   <DetectCard
                     key={detection.id}
                     detection={detection}

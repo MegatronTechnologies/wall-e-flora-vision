@@ -136,4 +136,10 @@ Hazırda `raspberry-pi/send_detection.py` ayrı skript kimi işləyir. Aşağıd
 - **Retry mexanizmi:** `send_detection` çağırışı xəta verərsə, şəkil yolunu və metadatanı lokal JSON faylına (məsələn `pending_uploads.json`) yazın. Skript növbəti açılışda həmin faylı oxuyub yenidən göndərə bilər.
 - **Rate limitə hörmət:** Edge function hər cihaz üçün dəqiqədə standart olaraq 60 sorğu qəbul edir (`RASPBERRY_PI_RATE_LIMIT_PER_MINUTE`). Kadr tezliyi yüksəkdirsə, yalnız “maraqlı” kadrlarda (məsələn, status dəyişəndə) göndəriş edin.
 
+## 8. Tez-tez verilən suallar
+
+- **“Authorization header yoxdur” xətası gəlir.** — `RASPBERRY_PI_API_KEY` mühit dəyişənini doğru yazdığınıza əmin olun və skripti yenidən başladın.
+- **“Rate limit exceeded” cavabı gəlir.** — Göndərişləri bir neçə saniyə dayandırın və yalnız real dəyişik olan kadrlarda sorğu göndərin; lazım olsa `RASPBERRY_PI_RATE_LIMIT_PER_MINUTE` dəyərini Lovable Cloud-da artırın.
+- **Şəkil serverdə görünmür.** — Fayl yolunun mövcudluğunu yoxlayın və göndərməzdən əvvəl kamera çarxının yazıldığını təsdiqləyin; base64 çevirmədən əvvəl `os.path.exists(path)` ilə yoxlama aparın.
+
 Bu addımları tamamladıqdan sonra Raspberry Pi hər aşkarlama üçün şəkilləri və məlumatları Lovable Cloud-a göndərə biləcək.

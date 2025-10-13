@@ -1,9 +1,12 @@
 import { useState, useMemo } from 'react';
+import type { MouseEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
 import { Card } from './ui/card';
 import Modal from './Modal';
 import type { Detection } from '@/types/detection';
+import { Button } from './ui/button';
+import { RefreshCw } from 'lucide-react';
 
 interface DetectCardProps {
   detection: Detection;
@@ -13,15 +16,16 @@ interface DetectCardProps {
 const DetectCard = ({ detection, index }: DetectCardProps) => {
   const { t } = useTranslation();
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const metadataEntries = useMemo(() => {
-    const entries = Object.entries(detection.metadata ?? {});
-    return entries.filter(([key, value]) => value !== undefined && value !== null)
-      .map(([key, value]) => ({
-        key,
-        label: key.charAt(0).toUpperCase() + key.slice(1),
-        value,
-      }));
-  }, [detection.metadata]);
+  const [imageVersion, setImageVersion] = useState(() => Date.now());
+  const metadataEntries = useMemo(
+    () => Object.entries(detection.metadata ?? {}).filter(([, value]) => value !== undefined && value !== null),
+    [detection.metadata],
+  );
+  const mainImageSrc = useMemo(() => {
+    if (!detection.image_url) return '';
+    const separator = detection.image_url.includes('?') ? '&' : '?';
+    return `${detection.image_url}${separator}v=${imageVersion}`;
+  }, [detection.image_url, imageVersion]);
   
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -37,6 +41,7 @@ const DetectCard = ({ detection, index }: DetectCardProps) => {
   const displayId = `#${detection.id.substring(0, 8)}`;
   const { status } = detection;
   const confidence = detection.confidence ?? undefined;
+  const deviceIdDisplay = detection.device_id;
 
   const statusColors: Record<Detection['status'], string> = {
     noObjects: 'text-info',
@@ -51,6 +56,14 @@ const DetectCard = ({ detection, index }: DetectCardProps) => {
     diseased: 'bg-primary/10',
     mixed: 'bg-yellow-500/10',
   };
+
+  const handleRefreshImage = (event: MouseEvent<HTMLButtonElement>) => {
+    event.stopPropagation();
+    setImageVersion(Date.now());
+  };
+
+  const formatMetadataLabel = (key: string) =>
+    t(`dashboard.metadata.${key}`, { defaultValue: key.charAt(0).toUpperCase() + key.slice(1) });
 
   return (
     <>
@@ -88,6 +101,13 @@ const DetectCard = ({ detection, index }: DetectCardProps) => {
                 {t(`dashboard.${status}`)}
               </span>
             </div>
+
+            <div className="flex justify-between items-center">
+              <span className="text-sm text-muted-foreground">
+                {t('dashboard.device', { defaultValue: 'Device' })}
+              </span>
+              <span className="text-sm font-medium">{deviceIdDisplay}</span>
+            </div>
           </div>
         </Card>
       </motion.div>
@@ -98,11 +118,11 @@ const DetectCard = ({ detection, index }: DetectCardProps) => {
         title={`${t('dashboard.details')} - ${displayId}`}
       >
         <div className="space-y-4">
-          <div className="aspect-video bg-secondary rounded-lg overflow-hidden">
-            {detection.image_url ? (
+          <div className="relative aspect-video bg-secondary rounded-lg overflow-hidden">
+            {mainImageSrc ? (
               <img 
-                src={detection.image_url} 
-                alt="Detection result" 
+                src={mainImageSrc} 
+                alt={t('dashboard.detectionImageAlt', { defaultValue: 'Detection result' })} 
                 className="w-full h-full object-cover"
               />
             ) : (
@@ -110,9 +130,20 @@ const DetectCard = ({ detection, index }: DetectCardProps) => {
                 <p className="text-muted-foreground">No image available</p>
               </div>
             )}
+            {detection.image_url && (
+              <Button
+                variant="secondary"
+                size="icon"
+                onClick={handleRefreshImage}
+                className="absolute right-3 top-3 bg-background/80 backdrop-blur hover:bg-background"
+                aria-label={t('dashboard.refreshImage', { defaultValue: 'Refresh image' })}
+              >
+                <RefreshCw className="h-4 w-4" />
+              </Button>
+            )}
           </div>
           
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
             <div className="p-4 bg-secondary rounded-lg">
               <p className="text-sm text-muted-foreground mb-2">{t('dashboard.status')}</p>
               <p className={`font-semibold ${statusColors[status]}`}>
@@ -125,6 +156,11 @@ const DetectCard = ({ detection, index }: DetectCardProps) => {
               <p className="font-semibold text-primary">
                 {typeof confidence === 'number' ? `${confidence.toFixed(1)}%` : t('common.notAvailable', { defaultValue: '—' })}
               </p>
+            </div>
+
+            <div className="p-4 bg-secondary rounded-lg">
+              <p className="text-sm text-muted-foreground mb-2">{t('dashboard.device', { defaultValue: 'Device' })}</p>
+              <p className="font-semibold">{deviceIdDisplay}</p>
             </div>
           </div>
           
@@ -154,11 +190,14 @@ const DetectCard = ({ detection, index }: DetectCardProps) => {
             <div className="p-4 bg-secondary rounded-lg">
               <p className="text-sm text-muted-foreground mb-2">{t('dashboard.additionalInfo', { defaultValue: 'Additional Info' })}</p>
               <div className="text-sm space-y-1">
-                {metadataEntries.map(({ key, label, value }) => (
-                  <p key={key}>
-                    {label}: {String(value)}
-                  </p>
-                ))}
+                {metadataEntries.map(([key, value]) => {
+                  const label = formatMetadataLabel(key);
+                  return (
+                    <p key={key}>
+                      {label}: {String(value)}
+                    </p>
+                  );
+                })}
               </div>
             </div>
           )}

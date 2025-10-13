@@ -4,6 +4,10 @@ import { initReactI18next } from 'react-i18next';
 const resources = {
   az: {
     translation: {
+      common: {
+        loading: 'Yüklənir...',
+        notAvailable: 'Mövcud deyil',
+      },
       // Navbar
       login: 'Daxil ol',
       signup: 'Qeydiyyat',
@@ -46,12 +50,23 @@ const resources = {
         detectId: 'Detekt ID',
         date: 'Tarix',
         status: 'Status',
+        device: 'Cihaz',
+        filterByStatus: 'Statusa görə filtrlə',
+        allStatuses: 'Bütün statuslar',
         noObjects: 'Obyekt tapılmadı',
         healthy: 'Sağlam',
         diseased: 'Xəstə',
         mixed: 'Qarışıq',
         details: 'Təfərrüatlar',
         confidence: 'Əminlik',
+        noDetections: 'Hələ deteksiya yoxdur. Raspberry Pi məlumatı gözlənilir...',
+        additionalInfo: 'Əlavə məlumat',
+        refreshImage: 'Şəkli yenilə',
+        detectionImageAlt: 'Aşkarlama nəticəsi',
+        metadata: {
+          temperature: 'Temperatur',
+          humidity: 'Rütubət',
+        },
       },
       
       // Admin
@@ -76,6 +91,10 @@ const resources = {
   },
   eng: {
     translation: {
+      common: {
+        loading: 'Loading...',
+        notAvailable: 'N/A',
+      },
       // Navbar
       login: 'Login',
       signup: 'Sign Up',
@@ -118,12 +137,23 @@ const resources = {
         detectId: 'Detect ID',
         date: 'Date',
         status: 'Status',
+        device: 'Device',
+        filterByStatus: 'Filter by status',
+        allStatuses: 'All statuses',
         noObjects: 'No Objects Detected',
         healthy: 'Healthy',
         diseased: 'Diseased',
         mixed: 'Mixed',
         details: 'Details',
         confidence: 'Confidence',
+        noDetections: 'No detections yet. Waiting for Raspberry Pi data...',
+        additionalInfo: 'Additional Info',
+        refreshImage: 'Refresh image',
+        detectionImageAlt: 'Detection result',
+        metadata: {
+          temperature: 'Temperature',
+          humidity: 'Humidity',
+        },
       },
       
       // Admin
