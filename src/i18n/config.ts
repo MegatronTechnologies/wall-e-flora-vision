@@ -124,6 +124,8 @@ const resources = {
         authRequired: 'Bu funksiyanı istifadə etmək üçün superadmin kimi daxil olmalısınız.',
         authHelp: 'Lokal demoda bu funksional işləməyə bilər. Production mühitində superadmin hesabı ilə login olun.',
         edgeFunctionUnavailable: 'Edge Function əlçatan deyil. Lovable/Supabase layihənizdə `manage-users` funksiyasını deploy edin və şəbəkə çıxışını yoxlayın.',
+        edgeFunctionUnavailableTitle: 'Edge Function əlçatan deyil',
+        edgeFunctionHelp: 'Supabase CLI ilə `supabase functions deploy manage-users` icra edin və `VITE_SUPABASE_URL` ünvanına girişin mümkün olduğunu yoxlayın.',
       },
       
       // Modal
@@ -265,6 +267,8 @@ const resources = {
         authRequired: 'You must be signed in as a superadmin to manage users.',
         authHelp: 'In local demos this may be disabled. In production, log in with a superadmin account.',
         edgeFunctionUnavailable: 'Unable to reach the edge function. Deploy `manage-users` on Supabase and ensure network access.',
+        edgeFunctionUnavailableTitle: 'Edge function unreachable',
+        edgeFunctionHelp: 'Deploy the `manage-users` function via Supabase CLI and ensure your `VITE_SUPABASE_URL` is accessible from this environment.',
       },
       
       // Modal

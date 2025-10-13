@@ -84,6 +84,7 @@ const SuperAdminPanel = () => {
   const [roleFilter, setRoleFilter] = useState<'all' | RoleOption>('all');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
   const [authRequired, setAuthRequired] = useState(false);
+  const [edgeUnavailable, setEdgeUnavailable] = useState(false);
 
   const loadUsers = useCallback(async () => {
     setLoading(true);
@@ -92,11 +93,15 @@ const SuperAdminPanel = () => {
       const result = await fetchAdminUsers();
       setUsers(result);
       setAuthRequired(false);
+      setEdgeUnavailable(false);
       logger.info('SuperAdminPanel', `Fetched ${result.length} users`);
     } catch (error) {
       if (error instanceof Error && error.message === 'AUTH_REQUIRED') {
         logger.warn('SuperAdminPanel', 'Authentication required to load users');
         setAuthRequired(true);
+      } else if (error instanceof Error && error.message === 'EDGE_FUNCTION_UNREACHABLE') {
+        logger.warn('SuperAdminPanel', 'Edge function is unreachable during load');
+        setEdgeUnavailable(true);
       } else {
         logger.error('SuperAdminPanel', 'Failed to load admin users', error);
         toast({
@@ -245,6 +250,9 @@ const SuperAdminPanel = () => {
     } catch (error) {
       logger.error('SuperAdminPanel', 'Failed to save user', error);
       const isEdgeUnavailable = error instanceof Error && error.message === 'EDGE_FUNCTION_UNREACHABLE';
+      if (isEdgeUnavailable) {
+        setEdgeUnavailable(true);
+      }
       toast({
         title: t('common.error', { defaultValue: 'Xəta baş verdi' }),
         description: isEdgeUnavailable ? t('admin.edgeFunctionUnavailable') : t('admin.saveError'),
@@ -281,6 +289,9 @@ const SuperAdminPanel = () => {
     } catch (error) {
       logger.error('SuperAdminPanel', 'Failed to delete user', error);
       const isEdgeUnavailable = error instanceof Error && error.message === 'EDGE_FUNCTION_UNREACHABLE';
+      if (isEdgeUnavailable) {
+        setEdgeUnavailable(true);
+      }
       toast({
         title: t('common.error', { defaultValue: 'Xəta baş verdi' }),
         description: isEdgeUnavailable ? t('admin.edgeFunctionUnavailable') : t('admin.deleteError'),
@@ -337,6 +348,13 @@ const SuperAdminPanel = () => {
               <Card className="border-destructive text-destructive p-4">
                 <p className="font-semibold">{t('admin.authRequired')}</p>
                 <p className="text-sm text-muted-foreground">{t('admin.authHelp')}</p>
+              </Card>
+            )}
+
+            {!authRequired && edgeUnavailable && (
+              <Card className="border-destructive text-destructive p-4">
+                <p className="font-semibold">{t('admin.edgeFunctionUnavailableTitle', { defaultValue: t('admin.edgeFunctionUnavailable') })}</p>
+                <p className="text-sm text-muted-foreground">{t('admin.edgeFunctionHelp')}</p>
               </Card>
             )}
 
