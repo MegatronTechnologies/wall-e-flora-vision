@@ -99,6 +99,9 @@ const resources = {
           user: 'İstifadəçi',
           superadmin: 'Superadmin',
         },
+        password: 'Parol',
+        passwordPlaceholder: 'Ən azı 6 simvol',
+        passwordHint: 'Yalnız yeni istifadəçi yaradarkən tələb olunur.',
         createUserTitle: 'Yeni istifadəçi yarat',
         createUserSubtitle: 'Email təsdiqli yeni istifadəçi yaradılacaq.',
         editUserTitle: 'İstifadəçini redaktə et',
@@ -114,6 +117,8 @@ const resources = {
         deleteError: 'İstifadəçini silmək mümkün olmadı.',
         deleteConfirmTitle: 'İstifadəçini silmək istəyirsiniz?',
         deleteConfirmDesc: '{{email}} hesabı tamamilə silinəcək. Bu əməliyyat geri qaytarılmır.',
+        authRequired: 'Bu funksiyanı istifadə etmək üçün superadmin kimi daxil olmalısınız.',
+        authHelp: 'Lokal demoda bu funksional işləməyə bilər. Production mühitində superadmin hesabı ilə login olun.',
       },
       
       // Modal
@@ -226,6 +231,9 @@ const resources = {
           user: 'User',
           superadmin: 'Superadmin',
         },
+        password: 'Password',
+        passwordPlaceholder: 'At least 6 characters',
+        passwordHint: 'Only required when creating a new user.',
         createUserTitle: 'Create new user',
         createUserSubtitle: 'A new user will be created with email confirmed.',
         editUserTitle: 'Edit user',
@@ -241,6 +249,8 @@ const resources = {
         deleteError: 'Failed to delete the user.',
         deleteConfirmTitle: 'Delete this user?',
         deleteConfirmDesc: '{{email}} will be permanently removed. This action cannot be undone.',
+        authRequired: 'You must be signed in as a superadmin to manage users.',
+        authHelp: 'In local demos this may be disabled. In production, log in with a superadmin account.',
       },
       
       // Modal

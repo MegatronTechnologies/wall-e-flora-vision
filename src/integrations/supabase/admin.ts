@@ -30,7 +30,17 @@ const extractRole = (
   return role?.role ?? DEFAULT_ROLE;
 };
 
+const ensureAuthenticated = async () => {
+  const { data } = await supabase.auth.getSession();
+  if (!data.session) {
+    logger.warn("AdminService", "No active session found for admin operations");
+    throw new Error("AUTH_REQUIRED");
+  }
+  return data.session;
+};
+
 export const fetchAdminUsers = async (): Promise<AdminUser[]> => {
+  await ensureAuthenticated();
   logger.debug("AdminService", "Fetching profiles with roles");
   const { data, error } = await supabase
     .from("profiles")
@@ -57,6 +67,7 @@ interface ManageUserPayload {
   id?: string;
   email?: string;
   full_name?: string | null;
+  password?: string;
   role?: RoleOption;
 }
 
@@ -72,6 +83,7 @@ const invokeManageUsers = async <TResponse>(
   );
 
   if (error) {
+    logger.error("AdminService", "Edge function invocation failed", error);
     throw error;
   }
 
@@ -82,7 +94,9 @@ export const createAdminUser = async (input: {
   email: string;
   full_name: string | null;
   role: RoleOption;
+  password?: string;
 }) => {
+  await ensureAuthenticated();
   logger.debug("AdminService", "Creating user via edge function", input.email);
   const user = await invokeManageUsers<AdminUser>("create", input);
   logger.info("AdminService", "User created via edge function", user.id);
@@ -95,14 +109,16 @@ export const updateAdminUser = async (input: {
   full_name: string | null;
   role: RoleOption;
 }) => {
+  await ensureAuthenticated();
   logger.debug("AdminService", "Updating user via edge function", input.id);
   const user = await invokeManageUsers<AdminUser>("update", input);
   logger.info("AdminService", "User updated via edge function", user.id);
   return user;
 };
 
-export const deleteAdminUser = async (id: string) =>
-  invokeManageUsers<null>("delete", { id }).then(() => {
-    logger.info("AdminService", "User deleted via edge function", id);
-    return null;
-  });
+export const deleteAdminUser = async (id: string) => {
+  await ensureAuthenticated();
+  await invokeManageUsers<null>("delete", { id });
+  logger.info("AdminService", "User deleted via edge function", id);
+  return null;
+};

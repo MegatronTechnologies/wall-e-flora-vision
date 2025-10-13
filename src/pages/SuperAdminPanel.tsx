@@ -74,12 +74,14 @@ const SuperAdminPanel = () => {
     full_name: '',
     role: 'user',
   });
+  const [password, setPassword] = useState('');
   const [saving, setSaving] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<AdminUser | null>(null);
   const [deleting, setDeleting] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [roleFilter, setRoleFilter] = useState<'all' | RoleOption>('all');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
+  const [authRequired, setAuthRequired] = useState(false);
 
   const loadUsers = useCallback(async () => {
     setLoading(true);
@@ -87,14 +89,20 @@ const SuperAdminPanel = () => {
     try {
       const result = await fetchAdminUsers();
       setUsers(result);
+      setAuthRequired(false);
       logger.info('SuperAdminPanel', `Fetched ${result.length} users`);
     } catch (error) {
-      logger.error('SuperAdminPanel', 'Failed to load admin users', error);
-      toast({
-        title: t('common.error', { defaultValue: 'Xəta baş verdi' }),
-        description: t('admin.loadError', { defaultValue: 'İstifadəçilər yüklənmədi' }),
-        variant: 'destructive',
-      });
+      if (error instanceof Error && error.message === 'AUTH_REQUIRED') {
+        logger.warn('SuperAdminPanel', 'Authentication required to load users');
+        setAuthRequired(true);
+      } else {
+        logger.error('SuperAdminPanel', 'Failed to load admin users', error);
+        toast({
+          title: t('common.error', { defaultValue: 'Xəta baş verdi' }),
+          description: t('admin.loadError', { defaultValue: 'İstifadəçilər yüklənmədi' }),
+          variant: 'destructive',
+        });
+      }
     } finally {
       setLoading(false);
     }
@@ -144,6 +152,7 @@ const SuperAdminPanel = () => {
       full_name: '',
       role: 'user',
     });
+    setPassword('');
   };
 
   const openCreateModal = () => {
@@ -160,6 +169,7 @@ const SuperAdminPanel = () => {
       full_name: user.full_name ?? '',
       role: user.role,
     });
+    setPassword('');
     setIsFormOpen(true);
   };
 
@@ -167,6 +177,27 @@ const SuperAdminPanel = () => {
     event.preventDefault();
     setSaving(true);
     logger.debug('SuperAdminPanel', formState.id ? 'Updating user' : 'Creating user', formState);
+    if (authRequired) {
+      logger.warn('SuperAdminPanel', 'Cannot save user without authentication');
+      toast({
+        title: t('common.error'),
+        description: t('admin.authRequired'),
+        variant: 'destructive',
+      });
+      setSaving(false);
+      return;
+    }
+
+    if (!formState.id && password.length < 6) {
+      logger.warn('SuperAdminPanel', 'Password validation failed');
+      toast({
+        title: t('common.error'),
+        description: t('auth.passwordTooShort'),
+        variant: 'destructive',
+      });
+      setSaving(false);
+      return;
+    }
     try {
       const payload = {
         email: formState.email.trim(),
@@ -184,7 +215,7 @@ const SuperAdminPanel = () => {
           description: t('admin.updateSuccessDesc'),
         });
       } else {
-        updated = await createAdminUser(payload);
+        updated = await createAdminUser({ ...payload, password });
         setUsers((prev) => [updated, ...prev]);
         logger.info('SuperAdminPanel', 'User created', updated.id);
         toast({
@@ -212,6 +243,17 @@ const SuperAdminPanel = () => {
     setDeleting(true);
     logger.warn('SuperAdminPanel', 'Deleting user', deleteTarget.id);
     try {
+      if (authRequired) {
+        logger.warn('SuperAdminPanel', 'Cannot delete user without authentication');
+        toast({
+          title: t('common.error'),
+          description: t('admin.authRequired'),
+          variant: 'destructive',
+        });
+        setDeleting(false);
+        setDeleteTarget(null);
+        return;
+      }
       await deleteAdminUser(deleteTarget.id);
       setUsers((prev) => prev.filter((user) => user.id !== deleteTarget.id));
       logger.info('SuperAdminPanel', 'User deleted', deleteTarget.id);
@@ -247,7 +289,11 @@ const SuperAdminPanel = () => {
             <div className="flex justify-between items-center">
               <h1 className="text-4xl font-bold">{t('admin.title')}</h1>
               
-              <Button className="bg-primary hover:bg-primary/90 gap-2" onClick={openCreateModal}>
+              <Button
+                className="bg-primary hover:bg-primary/90 gap-2"
+                onClick={openCreateModal}
+                disabled={authRequired}
+              >
                 <UserPlus className="h-5 w-5" />
                 {t('admin.create')}
               </Button>
@@ -269,24 +315,33 @@ const SuperAdminPanel = () => {
               </Card>
             </div>
 
+            {authRequired && (
+              <Card className="border-destructive text-destructive p-4">
+                <p className="font-semibold">{t('admin.authRequired')}</p>
+                <p className="text-sm text-muted-foreground">{t('admin.authHelp')}</p>
+              </Card>
+            )}
+
             {/* Controls */}
-            <div className="flex flex-col gap-4 rounded-lg border border-border bg-card/60 p-4 sm:flex-row sm:items-center sm:justify-between">
-              <div className="flex w-full flex-col gap-3 sm:flex-row sm:items-center">
-                <div className="relative w-full sm:max-w-xs">
-                  <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    placeholder={t('admin.searchPlaceholder')}
-                    className="pl-9"
-                    value={searchTerm}
-                    onChange={(event) => setSearchTerm(event.target.value)}
-                  />
-                </div>
+              <div className="flex flex-col gap-4 rounded-lg border border-border bg-card/60 p-4 sm:flex-row sm:items-center sm:justify-between">
+                <div className="flex w-full flex-col gap-3 sm:flex-row sm:items-center">
+                  <div className="relative w-full sm:max-w-xs">
+                    <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      placeholder={t('admin.searchPlaceholder')}
+                      className="pl-9"
+                      value={searchTerm}
+                      onChange={(event) => setSearchTerm(event.target.value)}
+                      disabled={authRequired}
+                    />
+                  </div>
 
                 <div className="flex items-center gap-2">
                   <Filter className="h-4 w-4 text-muted-foreground" />
                   <Select
                     value={roleFilter}
                     onValueChange={(value) => setRoleFilter(value as 'all' | RoleOption)}
+                    disabled={authRequired}
                   >
                     <SelectTrigger className="w-40">
                       <SelectValue placeholder={t('admin.allRoles')} />
@@ -306,6 +361,7 @@ const SuperAdminPanel = () => {
                 variant="outline"
                 className="w-full gap-2 sm:w-auto"
                 onClick={handleToggleSort}
+                disabled={authRequired}
               >
                 <ArrowUpDown className="h-4 w-4" />
                 {sortDirection === 'asc' ? t('admin.sortOldest') : t('admin.sortNewest')}
@@ -437,21 +493,38 @@ const SuperAdminPanel = () => {
                 id="email"
                 type="email"
                 required
-                value={formState.email}
-                onChange={(event) => setFormState((prev) => ({ ...prev, email: event.target.value }))}
-                disabled={saving}
-              />
-            </div>
+                    value={formState.email}
+                    onChange={(event) => setFormState((prev) => ({ ...prev, email: event.target.value }))}
+                    disabled={saving}
+                  />
+                </div>
 
             <div className="space-y-2">
               <Label htmlFor="full_name">{t('admin.fullName')}</Label>
-              <Input
-                id="full_name"
-                value={formState.full_name}
-                onChange={(event) => setFormState((prev) => ({ ...prev, full_name: event.target.value }))}
-                disabled={saving}
-              />
-            </div>
+                  <Input
+                    id="full_name"
+                    value={formState.full_name}
+                    onChange={(event) => setFormState((prev) => ({ ...prev, full_name: event.target.value }))}
+                    disabled={saving}
+                  />
+                </div>
+
+            {!formState.id && (
+              <div className="space-y-2">
+                <Label htmlFor="password">{t('admin.password')}</Label>
+                <Input
+                  id="password"
+                  type="password"
+                  required={!formState.id}
+                  minLength={6}
+                  value={password}
+                  onChange={(event) => setPassword(event.target.value)}
+                  disabled={saving}
+                  placeholder={t('admin.passwordPlaceholder')}
+                />
+                <p className="text-xs text-muted-foreground">{t('admin.passwordHint')}</p>
+              </div>
+            )}
 
             <div className="space-y-2">
               <Label htmlFor="role">{t('admin.role')}</Label>

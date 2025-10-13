@@ -14,6 +14,7 @@ const managePayloadSchema = z.object({
       id: z.string().uuid().optional(),
       email: z.string().email().optional(),
       full_name: z.string().nullable().optional(),
+      password: z.string().min(6).optional(),
       role: z.enum(["user", "superadmin"]).optional(),
     })
     .refine((data) => {
@@ -59,10 +60,12 @@ const createUser = async (
   email: string,
   full_name: string | null | undefined,
   role: "user" | "superadmin" | undefined,
+  password: string | undefined,
 ) => {
   const { data, error } = await supabase.auth.admin.createUser({
     email,
     email_confirm: true,
+    ...(password ? { password } : {}),
     user_metadata: { full_name },
   });
 
@@ -196,6 +199,7 @@ serve(async (req) => {
           payload.email,
           payload.full_name ?? null,
           payload.role,
+          payload.password,
         );
 
         return new Response(JSON.stringify(newUser), {
