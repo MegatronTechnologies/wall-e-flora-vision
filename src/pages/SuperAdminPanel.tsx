@@ -244,9 +244,10 @@ const SuperAdminPanel = () => {
       resetForm();
     } catch (error) {
       logger.error('SuperAdminPanel', 'Failed to save user', error);
+      const isEdgeUnavailable = error instanceof Error && error.message === 'EDGE_FUNCTION_UNREACHABLE';
       toast({
         title: t('common.error', { defaultValue: 'Xəta baş verdi' }),
-        description: t('admin.saveError'),
+        description: isEdgeUnavailable ? t('admin.edgeFunctionUnavailable') : t('admin.saveError'),
         variant: 'destructive',
       });
     } finally {
@@ -279,9 +280,10 @@ const SuperAdminPanel = () => {
       });
     } catch (error) {
       logger.error('SuperAdminPanel', 'Failed to delete user', error);
+      const isEdgeUnavailable = error instanceof Error && error.message === 'EDGE_FUNCTION_UNREACHABLE';
       toast({
         title: t('common.error', { defaultValue: 'Xəta baş verdi' }),
-        description: t('admin.deleteError'),
+        description: isEdgeUnavailable ? t('admin.edgeFunctionUnavailable') : t('admin.deleteError'),
         variant: 'destructive',
       });
     } finally {

@@ -71,15 +71,15 @@ const invokeManageUsers = async <TResponse>(
   action: ManageUserAction,
   payload: ManageUserPayload,
 ) => {
-  const { data, error } = await supabase.functions.invoke<TResponse>(
-    "manage-users",
-    {
-      body: { action, payload },
-    },
-  );
+  const { data, error } = await supabase.functions.invoke<TResponse>("manage-users", {
+    body: { action, payload },
+  });
 
   if (error) {
     logger.error("AdminService", "Edge function invocation failed", error);
+    if (error.name === "FunctionsFetchError") {
+      throw new Error("EDGE_FUNCTION_UNREACHABLE");
+    }
     throw error;
   }
 
