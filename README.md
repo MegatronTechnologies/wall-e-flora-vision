@@ -67,6 +67,14 @@ docker compose up --build
 - İstifadəçiləri əlavə etmək/redaktə etmək/silmək üçün Lovable Cloud-da edge function `manage-users` deploy olunmuş olmalıdır və superadmin hesabı ilə daxil olmalısınız.
 - Yeni istifadəçi yaradılarkən email dərhal təsdiqlənir və rolu `İstifadəçi` və ya `Superadmin` kimi seçilə bilər.
 - Lokal development üçün `.env` faylında `VITE_SUPABASE_URL` və `VITE_SUPABASE_PUBLISHABLE_KEY` dəyərlərini təyin edib, login forması vasitəsilə Supabase Auth ilə daxil olun. Sessiya yaranmadıqda SuperAdmin paneli avtomatik bloklanacaq.
+- Edge function çatımlılığını təmin etmək üçün Supabase CLI vasitəsilə `supabase functions deploy manage-users` icra edin və `manage-users` funksiyasının `HTTPS` endpoint-i lokal mühitdən əlçatan olduğuna əmin olun.
+
+**Environment dəyişənləri**
+
+- `VITE_SUPABASE_URL`, `VITE_SUPABASE_PUBLISHABLE_KEY` — Supabase Auth və real vaxt funksiyaları üçün.
+- `VITE_PI_DETECT_URL` — Raspberry Pi-də deteksiya tetikleyen HTTP endpoint (POST sorğusu).
+- `VITE_STREAM_URL` — `Scan` düyməsi üçün canlı video axınının URL-i (məsələn, HLS və ya MJPEG).
+- `RASPBERRY_PI_API_KEY`, `RASPBERRY_PI_DEVICE_ID`, `RASPBERRY_PI_ENDPOINT` — Pi skriptinin Lovable Cloud-a məlumat göndərməsi üçün (ətraflı `raspberry-pi/README.md`).
 
 **Use GitHub Codespaces**
 
