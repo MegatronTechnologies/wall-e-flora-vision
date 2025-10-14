@@ -72,7 +72,7 @@ const decodeBase64Image = (value: string, label: string) => {
 };
 
 const uploadImage = async (
-  supabase: ReturnType<typeof createClient>,
+  supabase: any,
   filePath: string,
   fileData: Uint8Array,
   label: string,
