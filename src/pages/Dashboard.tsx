@@ -303,10 +303,6 @@ const Dashboard = () => {
 
       <div className="px-4 pb-12 pt-24">
         <div className="container mx-auto max-w-6xl space-y-10">
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-            <DetectionStatsComponent stats={stats} formatDate={formatDate} />
-          </motion.div>
-
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
             <DetectionActions onStream={handleStream} onDetect={handleDetect} isDetecting={isDetecting} />
             <DetectionFilters
@@ -322,6 +318,10 @@ const Dashboard = () => {
               timeValue={timeFilter}
               onTimeChange={(value) => setTimeFilter(value as typeof timeFilter)}
             />
+          </motion.div>
+
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
+            <DetectionStatsComponent stats={stats} formatDate={formatDate} />
           </motion.div>
 
           <div className="space-y-6">

@@ -43,14 +43,15 @@ const DetectionFilters = ({
   const { t } = useTranslation();
 
   return (
-    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+    <div className="flex flex-wrap items-center gap-3">
       <Input
-        placeholder={t("dashboard.searchPlaceholder", { defaultValue: "Search detections" })}
+        placeholder={t("dashboard.searchPlaceholder", { defaultValue: "Search" })}
         value={searchTerm}
         onChange={(event) => onSearchChange(event.target.value)}
+        className="w-full sm:w-60"
       />
       <Select value={statusValue} onValueChange={onStatusChange}>
-        <SelectTrigger>
+        <SelectTrigger className="w-[160px]">
           <SelectValue placeholder={t("dashboard.filterByStatus")} />
         </SelectTrigger>
         <SelectContent>
@@ -62,10 +63,11 @@ const DetectionFilters = ({
         </SelectContent>
       </Select>
       <Select value={deviceValue} onValueChange={onDeviceChange}>
-        <SelectTrigger>
-          <SelectValue placeholder={t("dashboard.filterByDevice", { defaultValue: "Filter by device" })} />
+        <SelectTrigger className="w-[160px]">
+          <SelectValue placeholder={t("dashboard.filterByDevice", { defaultValue: "Device" })} />
         </SelectTrigger>
         <SelectContent>
+          <SelectItem value="all">{t("dashboard.devices.all", { defaultValue: "All devices" })}</SelectItem>
           {deviceOptions.map((option) => (
             <SelectItem key={option.value} value={option.value}>
               {option.label}
@@ -74,8 +76,8 @@ const DetectionFilters = ({
         </SelectContent>
       </Select>
       <Select value={timeValue} onValueChange={onTimeChange}>
-        <SelectTrigger>
-          <SelectValue placeholder={t("dashboard.time.filter", { defaultValue: "Filter by time" })} />
+        <SelectTrigger className="w-[160px]">
+          <SelectValue placeholder={t("dashboard.time.filter", { defaultValue: "Time" })} />
         </SelectTrigger>
         <SelectContent>
           {timeOptions.map((option) => (
