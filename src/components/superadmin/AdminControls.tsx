@@ -1,4 +1,5 @@
 import { useTranslation } from "react-i18next";
+import type { Dispatch, SetStateAction } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -17,7 +18,7 @@ interface AdminControlsProps {
   searchTerm: string;
   onSearchTermChange: (value: string) => void;
   roleFilter: RoleFilter;
-  onRoleFilterChange: (value: RoleFilter) => void;
+  onRoleFilterChange: Dispatch<SetStateAction<RoleFilter>>;
   sortDirection: SortDirection;
   onToggleSort: () => void;
   onCreate: () => void;
