@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate, Link, useLocation } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
@@ -51,8 +51,7 @@ const Login = () => {
     try {
       const { role: signInRole } = await signIn(email, password);
       const fromState = location.state as { from?: { pathname: string } } | undefined;
-      const from = fromState?.from?.pathname;
-      const destination = from ?? (signInRole === "superadmin" ? "/admin" : "/dashboard");
+      const destination = fromState?.from?.pathname ?? (signInRole === "superadmin" ? "/admin" : "/dashboard");
       logger.info("LoginPage", "Login successful, redirecting", destination);
       toast({
         title: t("login"),
@@ -63,7 +62,10 @@ const Login = () => {
       logger.error("LoginPage", "Error while logging in", error);
       toast({
         title: t("common.error", { defaultValue: "Xəta baş verdi" }),
-        description: error instanceof Error ? error.message : t("auth.genericError", { defaultValue: "Daxil olarkən problem yarandı." }),
+        description:
+          error instanceof Error
+            ? error.message
+            : t("auth.genericError", { defaultValue: "Daxil olarkən problem yarandı." }),
         variant: "destructive",
       });
     } finally {
@@ -74,35 +76,27 @@ const Login = () => {
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
-      
-      <div className="pt-24 pb-12 px-4 flex items-center justify-center min-h-screen">
-        <motion.div
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          className="w-full max-w-md"
-        >
-          <div className="bg-card border border-border rounded-lg p-8 space-y-6">
-            <div className="text-center space-y-2">
-              <motion.div
-                animate={{ rotate: [0, 360] }}
-                transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
-                className="inline-block"
-              >
-                <Bot className="h-16 w-16 text-primary mx-auto" />
+
+      <div className="flex min-h-screen items-center justify-center px-4 pb-12 pt-24">
+        <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="w-full max-w-md">
+          <div className="space-y-6 rounded-lg border border-border bg-card p-8">
+            <div className="space-y-2 text-center">
+              <motion.div animate={{ rotate: [0, 360] }} transition={{ duration: 2, repeat: Infinity, ease: "linear" }} className="inline-block">
+                <Bot className="mx-auto h-16 w-16 text-primary" />
               </motion.div>
-              <h1 className="text-3xl font-bold">{t('login')}</h1>
-              <p className="text-muted-foreground">Wall-E Plant Health Detector</p>
+              <h1 className="text-3xl font-bold">{t("login")}</h1>
+              <p className="text-sm text-muted-foreground">Wall-E Plant Health Detector</p>
             </div>
 
             <form onSubmit={handleLogin} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="email">{t('contact.email')}</Label>
+                <Label htmlFor="email">{t("contact.email")}</Label>
                 <Input
                   id="email"
                   type="email"
                   value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="bg-background border-border focus:border-primary"
+                  onChange={(event) => setEmail(event.target.value)}
+                  className="border-border bg-background focus:border-primary"
                   required
                 />
               </div>
@@ -113,28 +107,16 @@ const Login = () => {
                   id="password"
                   type="password"
                   value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="bg-background border-border focus:border-primary"
+                  onChange={(event) => setPassword(event.target.value)}
+                  className="border-border bg-background focus:border-primary"
                   required
                 />
               </div>
 
-              <Button
-                type="submit"
-                className="w-full bg-primary hover:bg-primary/90"
-                disabled={submitting}
-                size="lg"
-              >
+              <Button type="submit" className="w-full bg-primary hover:bg-primary/90" size="lg" disabled={submitting}>
                 {submitting ? t("common.loading") : t("login")}
               </Button>
             </form>
-
-            <div className="text-center text-sm text-muted-foreground">
-              Don't have an account?{" "}
-              <Link to="/signup" className="text-primary hover:underline">
-                {t("signup")}
-              </Link>
-            </div>
           </div>
         </motion.div>
       </div>
