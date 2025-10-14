@@ -13,7 +13,7 @@ interface DetectionStatsProps {
   formatDate: (value: string | null | undefined) => string;
 }
 
-const Detector = ({ stats, formatDate }: DetectionStatsProps) => {
+const DetectionStatsComponent = ({ stats, formatDate }: DetectionStatsProps) => {
   const { t } = useTranslation();
 
   const items = [
@@ -49,4 +49,4 @@ const Detector = ({ stats, formatDate }: DetectionStatsProps) => {
   );
 };
 
-export default Detector;
+export default DetectionStatsComponent;
