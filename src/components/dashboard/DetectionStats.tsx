@@ -13,39 +13,40 @@ interface DetectionStatsProps {
   formatDate: (value: string | null | undefined) => string;
 }
 
-const DetectionStats = ({ stats, formatDate }: DetectionStatsProps) => {
+const Detector = ({ stats, formatDate }: DetectionStatsProps) => {
   const { t } = useTranslation();
 
+  const items = [
+    {
+      label: t("dashboard.stats.total"),
+      value: stats.total,
+    },
+    {
+      label: t("dashboard.stats.healthy"),
+      value: stats.healthy,
+      accent: "text-emerald-500",
+    },
+    {
+      label: t("dashboard.stats.diseased"),
+      value: stats.diseased,
+      accent: "text-primary",
+    },
+    {
+      label: t("dashboard.stats.lastDetection"),
+      value: formatDate(stats.lastDetection),
+    },
+  ];
+
   return (
-    <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-      <Card className="rounded-md border-border/70 bg-card/80 p-3 shadow-sm">
-        <p className="text-xs uppercase tracking-wide text-muted-foreground">
-          {t("dashboard.stats.total")}
-        </p>
-        <p className="text-xl font-semibold">{stats.total}</p>
-      </Card>
-      <Card className="rounded-md border-border/70 bg-card/80 p-3 shadow-sm">
-        <p className="text-xs uppercase tracking-wide text-muted-foreground">
-          {t("dashboard.stats.healthy")}
-        </p>
-        <p className="text-xl font-semibold text-green-500">{stats.healthy}</p>
-      </Card>
-      <Card className="rounded-md border-border/70 bg-card/80 p-3 shadow-sm">
-        <p className="text-xs uppercase tracking-wide text-muted-foreground">
-          {t("dashboard.stats.diseased")}
-        </p>
-        <p className="text-xl font-semibold text-primary">{stats.diseased}</p>
-      </Card>
-      <Card className="rounded-md border-border/70 bg-card/80 p-3 shadow-sm">
-        <p className="text-xs uppercase tracking-wide text-muted-foreground">
-          {t("dashboard.stats.lastDetection")}
-        </p>
-        <p className="text-xl font-semibold text-foreground">
-          {formatDate(stats.lastDetection)}
-        </p>
-      </Card>
+    <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
+      {items.map(({ label, value, accent }) => (
+        <Card key={label} className="rounded-sm border-border/60 bg-card/70 px-3 py-2">
+          <p className="text-[11px] text-muted-foreground">{label}</p>
+          <p className={`text-lg font-medium ${accent ?? "text-foreground"}`}>{value}</p>
+        </Card>
+      ))}
     </div>
   );
 };
 
-export default DetectionStats;
+export default Detector;
