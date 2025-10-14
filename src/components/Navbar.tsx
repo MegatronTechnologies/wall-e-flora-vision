@@ -63,18 +63,13 @@ const Navbar = () => {
               </Button>
             </>
           ) : (
-            <>
-              {!isSuperAdminRoute && (
-                <Link to="/login">
-                  <Button variant="ghost" className="hover:text-primary">
-                    {t("login")}
-                  </Button>
-                </Link>
-              )}
-              <Link to="/signup">
-                <Button className="bg-primary hover:bg-primary/90">{t("signup")}</Button>
+            !isSuperAdminRoute && (
+              <Link to="/login">
+                <Button variant="ghost" className="hover:text-primary">
+                  {t("login")}
+                </Button>
               </Link>
-            </>
+            )
           )}
         </div>
       </div>

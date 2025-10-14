@@ -8,8 +8,10 @@ interface AuthContextValue {
   user: User | null;
   role: RoleOption | null;
   loading: boolean;
-  signIn: (email: string, password: string) => Promise<{ user: User | null; role: RoleOption | null }>;
-  signUp: (name: string, email: string, password: string) => Promise<{ user: User | null; role: RoleOption | null }>;
+  signIn: (
+    email: string,
+    password: string,
+  ) => Promise<{ user: User | null; role: RoleOption | null }>;
   signOut: () => Promise<void>;
   refresh: () => Promise<void>;
 }
@@ -53,23 +55,17 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const syncSession = useCallback(
     async (initialCall = false) => {
-      if (initialCall) {
-        setLoading(true);
-      }
+      if (initialCall) setLoading(true);
       try {
         const { data, error } = await supabase.auth.getSession();
-        if (error) {
-          throw error;
-        }
+        if (error) throw error;
         await handleSession(data.session, setUser, setRole);
       } catch (error) {
         logger.error("AuthContext", "Failed to synchronise session", error);
         setUser(null);
         setRole(null);
       } finally {
-        if (initialCall) {
-          setLoading(false);
-        }
+        if (initialCall) setLoading(false);
       }
     },
     [],
@@ -93,48 +89,25 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     };
   }, [syncSession]);
 
-  const signIn = useCallback(
-    async (email: string, password: string) => {
-      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-      if (error) {
-        logger.error("AuthContext", "Sign in failed", error);
-        throw error;
-      }
-      const nextRole = data.user ? await fetchUserRole(data.user.id) : null;
-      setUser(data.user);
-      setRole(nextRole);
-      return { user: data.user, role: nextRole };
-    },
-    [],
-  );
-
-  const signUp = useCallback(
-    async (name: string, email: string, password: string) => {
-      const { data, error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          data: { full_name: name },
-          emailRedirectTo: undefined,
-        },
-      });
-      if (error) {
-        logger.error("AuthContext", "Sign up failed", error);
-        throw error;
-      }
-      const nextRole = data.user ? await fetchUserRole(data.user.id) : null;
-      setUser(data.user ?? null);
-      setRole(nextRole);
-      return { user: data.user ?? null, role: nextRole };
-    },
-    [],
-  );
+  const signIn = useCallback(async (email: string, password: string) => {
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+    if (error) {
+      logger.error("AuthContext", "Sign in failed", error);
+      throw error;
+    }
+    const nextRole = data.user ? await fetchUserRole(data.user.id) : null;
+    setUser(data.user);
+    setRole(nextRole);
+    return { user: data.user, role: nextRole };
+  }, []);
 
   const signOut = useCallback(async () => {
     const { error } = await supabase.auth.signOut();
-    if (error) {
+    if (error && error.name !== "AuthSessionMissingError") {
       logger.error("AuthContext", "Sign out failed", error);
       throw error;
+    } else if (error) {
+      logger.debug("AuthContext", "Sign out attempted with no active session");
     }
     setUser(null);
     setRole(null);
@@ -145,16 +118,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   }, [syncSession]);
 
   const value = useMemo<AuthContextValue>(
-    () => ({
-      user,
-      role,
-      loading,
-      signIn,
-      signUp,
-      signOut,
-      refresh,
-    }),
-    [loading, refresh, role, signIn, signOut, signUp, user],
+    () => ({ user, role, loading, signIn, signOut, refresh }),
+    [user, role, loading, signIn, signOut, refresh],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
@@ -167,4 +132,3 @@ export const useAuth = () => {
   }
   return context;
 };
-
