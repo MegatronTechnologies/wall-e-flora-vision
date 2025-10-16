@@ -61,6 +61,22 @@ docker compose up --build
 
 - `raspberry-pi/README.md` faylında Raspberry Pi-dən Lovable Cloud-a məlumat göndərilməsi üçün addım-addım təlimat var.
 
+### Raspberry Pi .env nümunəsi
+
+```bash
+# Lovable Cloud endpoint
+RASPBERRY_PI_ENDPOINT=https://wmzdgcumvdnqodryhmxs.supabase.co/functions/v1/submit-detection
+
+# Supabase anon (public) key
+SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndtemRnY3VtdmRucW9kcnlobXhzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAyMzk3MDgsImV4cCI6MjA3NTgxNTcwOH0.mVjRpsU_BnPEtL3UeZPkM4jjbslNbishgHwCbcC85MA
+
+# Raspberry Pi üçün backend secret açarı
+RASPBERRY_PI_API_KEY=[Supabase Backend → Secrets-dən götürdüyünüz dəyər]
+
+# Hər cihaz üçün unikal identifikator
+RASPBERRY_PI_DEVICE_ID=raspi-001
+```
+
 **SuperAdmin Panel**
 
 - `/admin` səhifəsi yalnız Supabase-də `superadmin` rolu olan istifadəçilər üçün nəzərdə tutulub.
