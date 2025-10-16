@@ -1,151 +1,120 @@
-# Raspberry Pi-dən Lovable Cloud-a Göndəriş
+# Raspberry Pi inteqrasiyası (qısa bələdçi)
 
-Bu sənəd `raspberry-pi/send_detection.py` skriptindən istifadə edərək Intel RealSense kamerası ilə toplanmış aşkarlama nəticələrini Lovable Cloud (Supabase) backend-inə necə ötürəcəyinizi izah edir.
+Bu sənəd Pi cihazından Lovable (Supabase) backend-inə aşkarlama nəticəsi ötürmək üçün minimal addımları və lazım olan skript nümunəsini bir yerdə cəmləyir.
 
-## 1. Lazımi paketləri qurun
+## 1. Əsas tələblər
+- Raspberry Pi 4 (≥4 GB) və Raspbian/Raspberry Pi OS (64-bit)
+- Python 3.8+, `pip`, `requests`, `Pillow`, `pyrealsense2`, `opencv-python`
+- Ultralytics YOLO (YOLOv8 nano tövsiyə olunur): `pip install ultralytics`
+- İntel RealSense D435 (və ya alternativ kamera)
 
-Terminalda Python asılılıqlarını quraşdırın:
+## 2. Mühit dəyişənləri
+`~/.plant_detection_config` və ya `.bashrc` içində saxlayın, sonra `source` edin.
 
-```sh
-pip install requests Pillow
+```bash
+export RASPBERRY_PI_DEVICE_ID="raspi-001"
+export RASPBERRY_PI_API_KEY="PI_UCHUN_TƏYİN_ETDİYİNİZ_GİZLİ_AÇAR"
+export SUPABASE_ANON_KEY="Supabase Settings → API → Project API keys bölməsindəki anon açar"
+export RASPBERRY_PI_ENDPOINT="https://wmzdgcumvdnqodryhmxs.supabase.co/functions/v1/submit-detection"
 ```
 
-> YOLO modeli və RealSense üçün ayrıca `ultralytics`, `pyrealsense2`, `opencv-python` kimi paketlərin artıq qurulduğunu güman edirik.
-
-## 2. Mühit dəyişənlərini konfiqurasiya edin
-
-API açarı və cihaz identifikatoru Lovable Cloud tərəfindən yaradılır. Raspberry Pi-də bu dəyişənləri `.bashrc`, `.zshrc` və ya ayrıca `.env` faylına əlavə edin. `SUPABASE_ANON_KEY` dəyərini Lovable/Supabase layihənizin **Settings → API → Project API keys** bölməsindən (anon/public açar) götürün:
-
-```sh
-export RASPBERRY_PI_DEVICE_ID=raspi-001
-export RASPBERRY_PI_API_KEY=D8D72D4D-E3DF-4521-A722-BCEF673B68AE
-export SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
-export RASPBERRY_PI_ENDPOINT=https://wmzdgcumvdnqodryhmxs.supabase.co/functions/v1/submit-detection
-```
-
-Terminalı yenidən açın və ya `source ~/.bashrc` (və ya istifadə etdiyiniz shell faylının yolunu) icra edin ki, dəyişənlər aktiv olsun.
-
-## 3. Skripti əl ilə işə salmaq
-
-Əsas şəkil faylını və əlavə metadatanı göndərmək üçün:
-
-```sh
-python raspberry-pi/send_detection.py \
-  --main-image StreamScan/20241112_123456.png \
-  --status healthy \
-  --confidence 87.5 \
-  --temperature 22.5 \
-  --humidity 65 \
-  --plant-images StreamFrame/20241112_123456-1.png StreamFrame/20241112_123456-2.png \
-  --supabase-key "$SUPABASE_ANON_KEY"
-```
-
-Əgər `--device-id`, `--api-key` və `--endpoint` parametrini verməsəniz, skript yuxarıdakı mühit dəyişənlərini avtomatik oxuyacaq.
-
-### Parametrlərin izahı
-
-- `--main-image` – əsas aşkarlama şəkli (məcburidir).
-- `--status` – aşkarlamanın halı (`noObjects`, `healthy`, `diseased`, `mixed`).
-- `--confidence` – etibarlılıq faizi (0–100 arası).
-- `--plant-images` – ən çox 3 əlavə kiçik bitki şəkli (istəyə bağlı).
-- `--temperature`, `--humidity` – əlavə metadata nümunələri (istəyə bağlı).
-
-## 4. Mövcud YOLO skriptinə inteqrasiya
-
-Aşağıdakı nümunə əsas loop-da hər uğurlu aşkarlamadan sonra Lovable Cloud-a sorğu göndərir:
+## 3. Aşkarlama göndərən skript (copy & paste)
+Faylı (məsələn, `send_detection.py`) yaratmağınız üçün minimal nümunə:
 
 ```python
-from send_detection import DetectionSender
+#!/usr/bin/env python3
+import argparse, base64, json, os, requests
 
-sender = DetectionSender(
-    api_key=os.getenv("RASPBERRY_PI_API_KEY"),
-    device_id=os.getenv("RASPBERRY_PI_DEVICE_ID"),
-    endpoint=os.getenv("RASPBERRY_PI_ENDPOINT", DEFAULT_ENDPOINT),
-    supabase_key=os.getenv("SUPABASE_ANON_KEY"),
-)
+DEFAULT_ENDPOINT = os.getenv("RASPBERRY_PI_ENDPOINT", "https://wmzdgcumvdnqodryhmxs.supabase.co/functions/v1/submit-detection")
 
-result = sender.send_detection(
-    main_image_path=str(main_frame_path),
-    status="diseased",
-    confidence=87.5,
-    plant_image_paths=[str(img) for img in plant_frames[:3]],
-    metadata={"temperature": temperature, "humidity": humidity},
-)
+def encode(path: str) -> str:
+    with open(path, "rb") as fh:
+        return base64.b64encode(fh.read()).decode("utf-8")
 
-print("Lovable cavabı:", result)
+def send_detection(main_image: str, status: str, confidence: float | None, plant_images: list[str], metadata: dict | None):
+    supabase_key = os.getenv("SUPABASE_ANON_KEY")
+    device_key = os.getenv("RASPBERRY_PI_API_KEY")
+    device_id = os.getenv("RASPBERRY_PI_DEVICE_ID")
+    if not supabase_key or not device_key or not device_id:
+        raise RuntimeError("SUPABASE_ANON_KEY, RASPBERRY_PI_API_KEY, RASPBERRY_PI_DEVICE_ID mühitdə tapılmadı")
+
+    payload = {
+        "device_id": device_id,
+        "main_image": encode(main_image),
+        "status": status,
+    }
+    if confidence is not None:
+        payload["confidence"] = confidence
+    if plant_images:
+        payload["plant_images"] = [encode(path) for path in plant_images[:3]]
+    if metadata:
+        payload["metadata"] = metadata
+
+    headers = {
+        "Authorization": f"Bearer {supabase_key}",
+        "apikey": supabase_key,
+        "X-Raspberry-Pi-Key": device_key,
+        "Content-Type": "application/json",
+    }
+
+    resp = requests.post(DEFAULT_ENDPOINT, headers=headers, json=payload, timeout=30)
+    resp.raise_for_status()
+    return resp.json()
+
+def cli():
+    parser = argparse.ArgumentParser(description="Raspberry Pi → Supabase aşkarlama göndərişi")
+    parser.add_argument("--main-image", required=True, help="Əsas şəkil faylı")
+    parser.add_argument("--status", required=True, choices=["noObjects", "healthy", "diseased", "mixed"])
+    parser.add_argument("--confidence", type=float, help="0-100 arası etibarlılıq")
+    parser.add_argument("--plant-images", nargs="*", help="Əlavə bitki şəkilləri (max 3)")
+    parser.add_argument("--temperature", type=float)
+    parser.add_argument("--humidity", type=float)
+    args = parser.parse_args()
+
+    metadata = {}
+    if args.temperature is not None:
+        metadata["temperature"] = args.temperature
+    if args.humidity is not None:
+        metadata["humidity"] = args.humidity
+    if not metadata:
+        metadata = None
+
+    result = send_detection(
+        main_image=args.main_image,
+        status=args.status,
+        confidence=args.confidence,
+        plant_images=args.plant_images or [],
+        metadata=metadata,
+    )
+    print(json.dumps(result, indent=2, ensure_ascii=False))
+
+if __name__ == "__main__":
+    cli()
 ```
 
-Öz real dəyişənlərinizi (`status`, `confidence`, metadata və s.) YOLO modelinizin çıxışına uyğun şəkildə doldurun.
+## 4. Tez test
+```bash
+python3 send_detection.py \
+  --main-image sample.jpg \
+  --status diseased \
+  --confidence 82.5 \
+  --temperature 23.1
+```
 
-## 5. Uğursuz sorğular üçün yoxlama
+Uğurlu cavab JSON olaraq çap edilir (`detection_id` daxil).
 
-- Skript **“API açarı tapılmadı”** deyirsə, mühit dəyişənini düzgün yazdığınızdan və terminalın onu oxuduğundan əmin olun.
-- HTTP xətası alırsınızsa, Lovable Cloud tərəfində (Supabase Dashboard → Edge Functions → `submit-detection`) log-ları izləyin.
-- Şəkil yollarının doğru olduğuna əmin olun; mövcud olmayan fayl üçün skript `FileNotFoundError` qaytaracaq.
+## 5. YOLO ilə inteqrasiya (xülasə)
+- `DetectionSender` istifadə edin: mərhələlər — kadrı saxla, statusu təyin et, `send_detection` funksiyasını çağır.
+- Əgər ardıcıl loop qurursunuzsa, 2 saniyəlik gecikmə və ya yalnız status dəyişəndə göndəriş tövsiyə olunur.
+- `confidence` dəyərini model çıxışından `probability*100` kimi göndərin.
 
-## 6. Böyük YOLO skriptində addım-addım dəyişikliklər
+## 6. Stream/snapshot (istəyə bağlı)
+- MJPEG (`mjpg-streamer`) və ya sadə Flask serveri ilə `http://PI_IP:8080/?action=snapshot` ünvanını ayarlayın.
+- Dashboard-da `VITE_STREAM_URL` dəyərini bu URL ilə yeniləyin.
 
-Hazırda `raspberry-pi/send_detection.py` ayrı skript kimi işləyir. Aşağıdakı addımları çox kadr işləyən əsas YOLO skriptinizə (RealSense ilə çəkiliş edən fayl) əlavə edin ki, aşkarlama bitən kimi Lovable Cloud-a məlumat getsin:
+## 7. Troubleshooting
+- `401/403` → Supabase anon açarı və Pi API açarını yoxlayın.
+- `429` → `RASPBERRY_PI_RATE_LIMIT_PER_MINUTE` dəyərini Supabase-də artırın və ya göndəriş tezliyini azaldın.
+- Şəkil yükləmə xətası → fayl yolunu və ölçüsünü (15 MB limit) yoxlayın.
 
-1. **Import əlavə et**
-   ```python
-   from send_detection import DetectionSender
-   ```
-
-2. **Sender obyektini hazırlayın** (loop başlamazdan əvvəl, məsələn pipeline qurulduqdan sonra):
-   ```python
-   sender = DetectionSender(
-       api_key=os.getenv("RASPBERRY_PI_API_KEY"),
-       device_id=os.getenv("RASPBERRY_PI_DEVICE_ID"),
-       endpoint=os.getenv("RASPBERRY_PI_ENDPOINT", DEFAULT_ENDPOINT),
-       supabase_key=os.getenv("SUPABASE_ANON_KEY"),
-   )
-   ```
-
-3. **Əsas kadrı saxladıqdan sonra göndərin.** `save_full_frame` və ya `save_frames_from_detections` funksiyasında şəkil saxlandıqdan sonra aşağıdakı bloku yerləşdirin:
-   ```python
-   detection_metadata = {
-       "temperature": current_temperature,
-       "humidity": current_humidity,
-   }
-
-   try:
-       response = sender.send_detection(
-           main_image_path=str(saved_frame_path),
-           status=detected_status,
-           confidence=round(confidence * 100, 2),
-           plant_image_paths=[str(path) for path in saved_crop_paths[:3]],
-           metadata={k: v for k, v in detection_metadata.items() if v is not None},
-       )
-       print("Detection Supabase-a göndərildi:", response)
-   except Exception as exc:
-       print("Göndərmə zamanı xəta baş verdi:", exc)
-   ```
-
-4. **Status və confidence** dəyərini modelinizin çıxışından götürün. Məsələn:
-   ```python
-   if object_count == 0:
-       detected_status = "noObjects"
-       confidence = 0
-   else:
-       detected_status = "diseased"  # modeli necə etiketləyirsinizsə uyğunlaşdırın
-       confidence = detections[0].conf.item()  # ən yüksək etibarlılıq
-   ```
-
-5. **Sensorlardan metadata toplayın.** Əgər temperatur/rütubət sensoru serial və ya I2C ilə bağlıdırsa, əsas loop-da oxuyun və yuxarıda göstərilən `detection_metadata` obyektinə əlavə edin.
-
-## 7. Yenidən göndərmə və loqlaşdırma tövsiyələri
-
-- **Fayla log yazın:** `logging` modulundan istifadə edib həm uğurlu, həm də uğursuz göndərişləri `/var/log/mold-detector.log` kimi faylda saxlayın.
-- **Retry mexanizmi:** `send_detection` çağırışı xəta verərsə, şəkil yolunu və metadatanı lokal JSON faylına (məsələn `pending_uploads.json`) yazın. Skript növbəti açılışda həmin faylı oxuyub yenidən göndərə bilər.
-- **Rate limitə hörmət:** Edge function hər cihaz üçün dəqiqədə standart olaraq 60 sorğu qəbul edir (`RASPBERRY_PI_RATE_LIMIT_PER_MINUTE`). Kadr tezliyi yüksəkdirsə, yalnız “maraqlı” kadrlarda (məsələn, status dəyişəndə) göndəriş edin.
-
-## 8. Tez-tez verilən suallar
-
-- **“Authorization header yoxdur” xətası gəlir.** — `SUPABASE_ANON_KEY` və `RASPBERRY_PI_API_KEY` mühit dəyişənlərinin doğru yazıldığına əmin olun və skripti yenidən başladın.
-- **“Rate limit exceeded” cavabı gəlir.** — Göndərişləri bir neçə saniyə dayandırın və yalnız real dəyişik olan kadrlarda sorğu göndərin; lazım olsa `RASPBERRY_PI_RATE_LIMIT_PER_MINUTE` dəyərini Lovable Cloud-da artırın.
-- **Şəkil serverdə görünmür.** — Fayl yolunun mövcudluğunu yoxlayın və göndərməzdən əvvəl kamera çarxının yazıldığını təsdiqləyin; base64 çevirmədən əvvəl `os.path.exists(path)` ilə yoxlama aparın.
-- **“Edge function is unreachable” xəbərdarlığı görsənir.** — Lovable/Supabase layihənizdə `manage-users` edge funksiyasının deploy olunduğuna və lokal mühitin `VITE_SUPABASE_URL` vasitəsilə həmin hosta çıxışına əmin olun (`supabase functions deploy manage-users`).
-- **Dashboard-dakı `Scan`/`Detect` düymələri işləmirsə.** — `VITE_STREAM_URL` (canlı video) və `VITE_PI_DETECT_URL` (deteksiya POST endpoint-i) dəyərlərini `.env` faylında konfiqurasiya edin; Raspberry Pi-də uyğun servis və ya API işləməlidir.
-
-Bu addımları tamamladıqdan sonra Raspberry Pi hər aşkarlama üçün şəkilləri və məlumatları Lovable Cloud-a göndərə biləcək.
+Bu sənəddəki məzmun Raspberry Pi inteqrasiyasını tez başlatmaq üçün kifayət edir; əlavə ağırlıqda detala ehtiyac olduqda istənilə bilər.
