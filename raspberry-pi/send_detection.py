@@ -12,6 +12,7 @@ Usage:
 Alternatively, mühitdə aşağıdakı dəyişənləri təyin edib parametr vermədən də işlədə bilərsiniz:
   export RASPBERRY_PI_DEVICE_ID=raspi-001
   export RASPBERRY_PI_API_KEY=YOUR_API_KEY
+  export SUPABASE_ANON_KEY=YOUR_SUPABASE_ANON_KEY
   python send_detection.py --main-image sample.jpg --status healthy
 """
 
@@ -27,9 +28,10 @@ DEFAULT_ENDPOINT = "https://wmzdgcumvdnqodryhmxs.supabase.co/functions/v1/submit
 API_KEY_ENV = "RASPBERRY_PI_API_KEY"
 DEVICE_ID_ENV = "RASPBERRY_PI_DEVICE_ID"
 ENDPOINT_ENV = "RASPBERRY_PI_ENDPOINT"
+SUPABASE_ANON_KEY_ENV = "SUPABASE_ANON_KEY"
 
 class DetectionSender:
-    def __init__(self, api_key: str, device_id: str, endpoint: str):
+    def __init__(self, api_key: str, device_id: str, endpoint: str, supabase_key: str):
         """
         Initialize the Detection Sender
         
@@ -41,6 +43,7 @@ class DetectionSender:
         self.api_key = api_key
         self.device_id = device_id
         self.endpoint = endpoint
+        self.supabase_key = supabase_key
         
     def encode_image(self, image_path: str) -> str:
         """
@@ -110,7 +113,9 @@ class DetectionSender:
         
         # Send request
         headers = {
-            'Authorization': f'Bearer {self.api_key}',
+            'Authorization': f'Bearer {self.supabase_key}',
+            'apikey': self.supabase_key,
+            'X-Raspberry-Pi-Key': self.api_key,
             'Content-Type': 'application/json'
         }
         
@@ -144,6 +149,8 @@ def main():
     parser.add_argument('--api-key', help='API key for authentication (or set env RASPBERRY_PI_API_KEY)')
     parser.add_argument('--endpoint', 
                        help='Edge function endpoint URL (or set env RASPBERRY_PI_ENDPOINT)')
+    parser.add_argument('--supabase-key',
+                       help='Supabase anonymous key for Authorization header (or set env SUPABASE_ANON_KEY)')
     parser.add_argument('--main-image', required=True, help='Path to main detection image')
     parser.add_argument('--status', required=True, 
                        choices=['noObjects', 'healthy', 'diseased', 'mixed'],
@@ -179,11 +186,19 @@ def main():
 
     endpoint = args.endpoint or os.getenv(ENDPOINT_ENV) or DEFAULT_ENDPOINT
 
+    supabase_key = args.supabase_key or os.getenv(SUPABASE_ANON_KEY_ENV)
+    if not supabase_key:
+        raise ValueError(
+            f"Supabase anon key tapılmadı. "
+            f"`--supabase-key` parametrini verin və ya {SUPABASE_ANON_KEY_ENV} mühit dəyişənini təyin edin."
+        )
+
     # Create sender and send detection
     sender = DetectionSender(
         api_key=api_key,
         device_id=device_id,
-        endpoint=endpoint
+        endpoint=endpoint,
+        supabase_key=supabase_key
     )
     
     result = sender.send_detection(

@@ -81,6 +81,7 @@ nano ~/.plant_detection_config
 
 # Add these lines:
 export RASPBERRY_PI_API_KEY="your-actual-api-key-from-lovable"
+export SUPABASE_ANON_KEY="your-supabase-anon-key"
 export RASPBERRY_PI_DEVICE_ID="raspi-001"
 export RASPBERRY_PI_ENDPOINT="https://wmzdgcumvdnqodryhmxs.supabase.co/functions/v1/submit-detection"
 
@@ -94,6 +95,8 @@ source ~/.bashrc
 2. Go to Backend → Secrets
 3. Find `RASPBERRY_PI_API_KEY` value
 4. Copy and paste into config above
+
+For the Supabase anonymous key, open **Settings → API → Project API keys** and copy the `anon` public key into `SUPABASE_ANON_KEY`.
 
 ---
 
@@ -242,7 +245,9 @@ ping google.com
 
 # Test endpoint
 curl -X POST https://wmzdgcumvdnqodryhmxs.supabase.co/functions/v1/submit-detection \
-  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Authorization: Bearer $SUPABASE_ANON_KEY" \
+  -H "apikey: $SUPABASE_ANON_KEY" \
+  -H "X-Raspberry-Pi-Key: YOUR_PI_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{"device_id":"test","main_image":"test","status":"healthy"}'
 ```

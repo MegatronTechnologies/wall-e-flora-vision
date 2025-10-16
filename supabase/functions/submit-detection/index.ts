@@ -3,8 +3,8 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.7.1";
 import { z } from "https://deno.land/x/zod@v3.23.8/mod.ts";
 
 const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, x-raspberry-pi-key, content-type",
 };
 
 const detectionPayloadSchema = z.object({
@@ -119,26 +119,25 @@ serve(async (req) => {
   }
 
   try {
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const raspberryPiApiKey = Deno.env.get('RASPBERRY_PI_API_KEY')!;
+    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const raspberryPiApiKey = Deno.env.get("RASPBERRY_PI_API_KEY")!;
 
     // Verify API key from Raspberry Pi
-    const authHeader = req.headers.get('Authorization');
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      console.error(`[${requestId}] Missing or invalid Authorization header`);
+    const deviceApiKey = req.headers.get("x-raspberry-pi-key");
+    if (!deviceApiKey) {
+      logWithId("Missing X-Raspberry-Pi-Key header");
       return new Response(
-        JSON.stringify({ error: 'Missing API key' }),
-        { status: 401, headers: headersWithRequestId }
+        JSON.stringify({ error: "Missing X-Raspberry-Pi-Key header" }),
+        { status: 401, headers: headersWithRequestId },
       );
     }
 
-    const apiKey = authHeader.replace('Bearer ', '');
-    if (apiKey !== raspberryPiApiKey) {
-      logWithId('Invalid API key provided');
+    if (deviceApiKey !== raspberryPiApiKey) {
+      logWithId("Invalid Raspberry Pi API key provided");
       return new Response(
-        JSON.stringify({ error: 'Invalid API key' }),
-        { status: 403, headers: headersWithRequestId }
+        JSON.stringify({ error: "Invalid Raspberry Pi API key" }),
+        { status: 403, headers: headersWithRequestId },
       );
     }
 

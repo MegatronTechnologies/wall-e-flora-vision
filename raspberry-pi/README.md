@@ -14,11 +14,12 @@ pip install requests Pillow
 
 ## 2. Mühit dəyişənlərini konfiqurasiya edin
 
-API açarı və cihaz identifikatoru Lovable Cloud tərəfindən yaradılır. Raspberry Pi-də bu dəyişənləri `.bashrc`, `.zshrc` və ya ayrıca `.env` faylına əlavə edin:
+API açarı və cihaz identifikatoru Lovable Cloud tərəfindən yaradılır. Raspberry Pi-də bu dəyişənləri `.bashrc`, `.zshrc` və ya ayrıca `.env` faylına əlavə edin. `SUPABASE_ANON_KEY` dəyərini Lovable/Supabase layihənizin **Settings → API → Project API keys** bölməsindən (anon/public açar) götürün:
 
 ```sh
 export RASPBERRY_PI_DEVICE_ID=raspi-001
 export RASPBERRY_PI_API_KEY=D8D72D4D-E3DF-4521-A722-BCEF673B68AE
+export SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 export RASPBERRY_PI_ENDPOINT=https://wmzdgcumvdnqodryhmxs.supabase.co/functions/v1/submit-detection
 ```
 
@@ -35,7 +36,8 @@ python raspberry-pi/send_detection.py \
   --confidence 87.5 \
   --temperature 22.5 \
   --humidity 65 \
-  --plant-images StreamFrame/20241112_123456-1.png StreamFrame/20241112_123456-2.png
+  --plant-images StreamFrame/20241112_123456-1.png StreamFrame/20241112_123456-2.png \
+  --supabase-key "$SUPABASE_ANON_KEY"
 ```
 
 Əgər `--device-id`, `--api-key` və `--endpoint` parametrini verməsəniz, skript yuxarıdakı mühit dəyişənlərini avtomatik oxuyacaq.
@@ -59,6 +61,7 @@ sender = DetectionSender(
     api_key=os.getenv("RASPBERRY_PI_API_KEY"),
     device_id=os.getenv("RASPBERRY_PI_DEVICE_ID"),
     endpoint=os.getenv("RASPBERRY_PI_ENDPOINT", DEFAULT_ENDPOINT),
+    supabase_key=os.getenv("SUPABASE_ANON_KEY"),
 )
 
 result = sender.send_detection(
@@ -95,6 +98,7 @@ Hazırda `raspberry-pi/send_detection.py` ayrı skript kimi işləyir. Aşağıd
        api_key=os.getenv("RASPBERRY_PI_API_KEY"),
        device_id=os.getenv("RASPBERRY_PI_DEVICE_ID"),
        endpoint=os.getenv("RASPBERRY_PI_ENDPOINT", DEFAULT_ENDPOINT),
+       supabase_key=os.getenv("SUPABASE_ANON_KEY"),
    )
    ```
 
@@ -138,7 +142,7 @@ Hazırda `raspberry-pi/send_detection.py` ayrı skript kimi işləyir. Aşağıd
 
 ## 8. Tez-tez verilən suallar
 
-- **“Authorization header yoxdur” xətası gəlir.** — `RASPBERRY_PI_API_KEY` mühit dəyişənini doğru yazdığınıza əmin olun və skripti yenidən başladın.
+- **“Authorization header yoxdur” xətası gəlir.** — `SUPABASE_ANON_KEY` və `RASPBERRY_PI_API_KEY` mühit dəyişənlərinin doğru yazıldığına əmin olun və skripti yenidən başladın.
 - **“Rate limit exceeded” cavabı gəlir.** — Göndərişləri bir neçə saniyə dayandırın və yalnız real dəyişik olan kadrlarda sorğu göndərin; lazım olsa `RASPBERRY_PI_RATE_LIMIT_PER_MINUTE` dəyərini Lovable Cloud-da artırın.
 - **Şəkil serverdə görünmür.** — Fayl yolunun mövcudluğunu yoxlayın və göndərməzdən əvvəl kamera çarxının yazıldığını təsdiqləyin; base64 çevirmədən əvvəl `os.path.exists(path)` ilə yoxlama aparın.
 - **“Edge function is unreachable” xəbərdarlığı görsənir.** — Lovable/Supabase layihənizdə `manage-users` edge funksiyasının deploy olunduğuna və lokal mühitin `VITE_SUPABASE_URL` vasitəsilə həmin hosta çıxışına əmin olun (`supabase functions deploy manage-users`).

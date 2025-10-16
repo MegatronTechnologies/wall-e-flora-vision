@@ -14,8 +14,11 @@ from datetime import datetime
 # Configuration from environment
 API_KEY = os.getenv("RASPBERRY_PI_API_KEY", "your-api-key-here")
 DEVICE_ID = os.getenv("RASPBERRY_PI_DEVICE_ID", "raspi-001")
-ENDPOINT = os.getenv("RASPBERRY_PI_ENDPOINT", 
-                    "https://wmzdgcumvdnqodryhmxs.supabase.co/functions/v1/submit-detection")
+ENDPOINT = os.getenv(
+    "RASPBERRY_PI_ENDPOINT",
+    "https://wmzdgcumvdnqodryhmxs.supabase.co/functions/v1/submit-detection",
+)
+SUPABASE_ANON_KEY = os.getenv("SUPABASE_ANON_KEY", "your-supabase-anon-key")
 
 # YOLO Model Configuration (example - adjust to your model)
 YOLO_MODEL_PATH = "models/yolov8n.pt"  # Path to your trained model
@@ -25,7 +28,8 @@ CONFIDENCE_THRESHOLD = 0.5
 sender = DetectionSender(
     api_key=API_KEY,
     device_id=DEVICE_ID,
-    endpoint=ENDPOINT
+    endpoint=ENDPOINT,
+    supabase_key=SUPABASE_ANON_KEY,
 )
 
 # Configure RealSense Camera
