@@ -60,7 +60,7 @@ const LiveStreamModal = ({ open, onClose, onDetect, detecting, streamUrl }: Live
         {streamUrl ? (
           <img 
             key={imageKey}
-            src={`${streamUrl}/snapshot?t=${imageKey}`} 
+            src={`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/pi-proxy?endpoint=/snapshot&t=${imageKey}`} 
             alt="Raspberry Pi Stream" 
             className="h-full w-full object-cover"
             onError={(e) => {

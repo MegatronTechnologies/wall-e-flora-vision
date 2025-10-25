@@ -151,18 +151,14 @@ const Dashboard = () => {
 
   const handleDetect = async () => {
     logger.debug("Dashboard", "Detect action triggered");
-    if (!PI_DETECT_URL) {
-      toast({
-        title: t("common.error"),
-        description: t("dashboard.detectEndpointMissing", { defaultValue: "Detection endpoint is not configured." }),
-        variant: "destructive",
-      });
-      return;
-    }
-
     setIsDetecting(true);
     try {
-      const response = await fetch(`${PI_DETECT_URL}/detect`, { method: "POST" });
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+      const response = await fetch(
+        `${supabaseUrl}/functions/v1/pi-proxy?endpoint=/detect`,
+        { method: "POST" }
+      );
+      
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
       
       const result = await response.json();

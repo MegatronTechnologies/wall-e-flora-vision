@@ -16,12 +16,12 @@ interface PiStatus {
 
 const StatusIndicator = () => {
   const { t } = useTranslation();
-  const piStreamUrl = import.meta.env.VITE_PI_STREAM_URL;
+  const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 
   const { data: status, isError } = useQuery<PiStatus>({
     queryKey: ["pi-status"],
     queryFn: async () => {
-      const response = await fetch(`${piStreamUrl}/status`);
+      const response = await fetch(`${supabaseUrl}/functions/v1/pi-proxy?endpoint=/status`);
       if (!response.ok) throw new Error("Failed to fetch status");
       return response.json();
     },
