@@ -13,6 +13,7 @@ import DetectionFilters from "@/components/dashboard/DetectionFilters";
 import DetectionList from "@/components/dashboard/DetectionList";
 import DeleteDetectionDialog from "@/components/dashboard/DeleteDetectionDialog";
 import LiveStreamModal from "@/components/dashboard/LiveStreamModal";
+import StatusIndicator from "@/components/dashboard/StatusIndicator";
 import {
   Pagination,
   PaginationContent,
@@ -23,8 +24,8 @@ import {
 } from "@/components/ui/pagination";
 
 const PAGE_SIZE = 10;
-const DETECT_ENDPOINT = import.meta.env.VITE_PI_DETECT_URL ?? "";
-const STREAM_URL = import.meta.env.VITE_STREAM_URL ?? "";
+const PI_DETECT_URL = import.meta.env.VITE_PI_DETECT_URL ?? "";
+const PI_STREAM_URL = import.meta.env.VITE_PI_STREAM_URL ?? "";
 
 const Dashboard = () => {
   const { t } = useTranslation();
@@ -150,7 +151,7 @@ const Dashboard = () => {
 
   const handleDetect = async () => {
     logger.debug("Dashboard", "Detect action triggered");
-    if (!DETECT_ENDPOINT) {
+    if (!PI_DETECT_URL) {
       toast({
         title: t("common.error"),
         description: t("dashboard.detectEndpointMissing", { defaultValue: "Detection endpoint is not configured." }),
@@ -161,19 +162,22 @@ const Dashboard = () => {
 
     setIsDetecting(true);
     try {
-      const response = await fetch(DETECT_ENDPOINT, { method: "POST" });
+      const response = await fetch(`${PI_DETECT_URL}/detect`, { method: "POST" });
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      
+      const result = await response.json();
+      toast({
+        title: t("dashboard.detectSuccess", { defaultValue: "Detection successful" }),
+        description: `${result.status} (${result.confidence.toFixed(1)}%)`,
+      });
+      
       await fetchDetections();
       setCurrentPage(1);
-      toast({
-        title: t("dashboard.detectSuccess", { defaultValue: "Detection requested" }),
-        description: t("dashboard.detectSuccessDescription", { defaultValue: "New detection will appear shortly." }),
-      });
     } catch (error) {
       logger.error("Dashboard", "Detect request failed", error);
       toast({
         title: t("common.error"),
-        description: t("dashboard.detectError", { defaultValue: "Failed to trigger detection." }),
+        description: t("dashboard.detectError", { defaultValue: "Connection error" }),
         variant: "destructive",
       });
     } finally {
@@ -304,6 +308,7 @@ const Dashboard = () => {
       <div className="px-4 pb-12 pt-24">
         <div className="container mx-auto max-w-6xl space-y-10">
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
+            <StatusIndicator />
             <DetectionActions onStream={handleStream} onDetect={handleDetect} isDetecting={isDetecting} />
             <DetectionFilters
               searchTerm={searchTerm}
@@ -353,7 +358,7 @@ const Dashboard = () => {
         onClose={() => setIsStreamModalOpen(false)}
         onDetect={handleDetect}
         detecting={isDetecting}
-        streamUrl={STREAM_URL}
+        streamUrl={PI_STREAM_URL}
       />
     </div>
   );

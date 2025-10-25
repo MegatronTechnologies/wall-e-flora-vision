@@ -17,13 +17,13 @@ const LiveStreamModal = ({ open, onClose, onDetect, detecting, streamUrl }: Live
   const [imageKey, setImageKey] = useState(Date.now());
   const [isRefreshing, setIsRefreshing] = useState(false);
 
-  // Auto-refresh stream every 2 seconds for MJPEG-like experience
+  // Auto-refresh stream every 500ms for live effect
   useEffect(() => {
     if (!open || !streamUrl) return;
     
     const interval = setInterval(() => {
       setImageKey(Date.now());
-    }, 2000);
+    }, 500);
 
     return () => clearInterval(interval);
   }, [open, streamUrl]);
@@ -60,7 +60,7 @@ const LiveStreamModal = ({ open, onClose, onDetect, detecting, streamUrl }: Live
         {streamUrl ? (
           <img 
             key={imageKey}
-            src={`${streamUrl}?t=${imageKey}`} 
+            src={`${streamUrl}/snapshot?t=${imageKey}`} 
             alt="Raspberry Pi Stream" 
             className="h-full w-full object-cover"
             onError={(e) => {
@@ -75,7 +75,7 @@ const LiveStreamModal = ({ open, onClose, onDetect, detecting, streamUrl }: Live
                 {t("dashboard.streamUnavailable", { defaultValue: "Stream URL not configured." })}
               </p>
               <p className="text-xs text-muted-foreground/60">
-                Configure VITE_STREAM_URL in environment
+                Configure VITE_PI_STREAM_URL in environment
               </p>
             </div>
           </div>
@@ -83,7 +83,7 @@ const LiveStreamModal = ({ open, onClose, onDetect, detecting, streamUrl }: Live
       </div>
       <p className="mt-4 text-sm text-muted-foreground">
         {t("dashboard.streamNote", {
-          defaultValue: "Stream updates every 2 seconds. Click refresh for immediate update.",
+          defaultValue: "Stream updates every 500ms. Click refresh for immediate update.",
         })}
       </p>
     </Modal>
