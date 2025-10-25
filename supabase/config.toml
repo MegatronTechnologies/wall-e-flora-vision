@@ -1,1 +1,4 @@
 project_id = "wmzdgcumvdnqodryhmxs"
+
+[functions.pi-proxy]
+verify_jwt = false
