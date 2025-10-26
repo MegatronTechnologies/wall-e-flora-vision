@@ -153,20 +153,19 @@ const Dashboard = () => {
     logger.debug("Dashboard", "Detect action triggered");
     setIsDetecting(true);
     try {
-      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
       const response = await fetch(
-        `${supabaseUrl}/functions/v1/pi-proxy?endpoint=/detect`,
+        `${PI_DETECT_URL}/detect`,
         { method: "POST" }
       );
-      
+
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
-      
+
       const result = await response.json();
       toast({
         title: t("dashboard.detectSuccess", { defaultValue: "Detection successful" }),
-        description: `${result.status} (${result.confidence.toFixed(1)}%)`,
+        description: `${result.status} (${result.confidence?.toFixed(1) || 'N/A'}%)`,
       });
-      
+
       await fetchDetections();
       setCurrentPage(1);
     } catch (error) {

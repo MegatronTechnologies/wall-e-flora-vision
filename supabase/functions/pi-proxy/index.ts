@@ -43,6 +43,19 @@ serve(async (req) => {
       });
     }
 
+    // Handle stream endpoint (MJPEG streaming)
+    if (endpoint.startsWith("/stream")) {
+      // For MJPEG streaming, we need to pass through the body stream
+      return new Response(piResponse.body, {
+        headers: {
+          ...corsHeaders,
+          "Content-Type": "multipart/x-mixed-replace; boundary=frame",
+          "Cache-Control": "no-cache, no-store, must-revalidate",
+          "Connection": "keep-alive",
+        },
+      });
+    }
+
     // Handle JSON responses (status, detect)
     const data = await piResponse.json();
     return new Response(JSON.stringify(data), {

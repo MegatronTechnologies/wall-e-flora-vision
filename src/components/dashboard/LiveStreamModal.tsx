@@ -2,7 +2,7 @@ import Modal from "@/components/Modal";
 import { Button } from "@/components/ui/button";
 import { Loader2, RefreshCw } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 
 interface LiveStreamModalProps {
   open: boolean;
@@ -16,23 +16,43 @@ const LiveStreamModal = ({ open, onClose, onDetect, detecting, streamUrl }: Live
   const { t } = useTranslation();
   const [imageKey, setImageKey] = useState(Date.now());
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [streamError, setStreamError] = useState(false);
+  const [useMjpeg, setUseMjpeg] = useState(true);
+  const imgRef = useRef<HTMLImageElement>(null);
 
-  // Auto-refresh stream every 500ms for live effect
+  // Reset state when modal opens
   useEffect(() => {
-    if (!open || !streamUrl) return;
-    
+    if (open) {
+      setStreamError(false);
+      setUseMjpeg(true);
+      setImageKey(Date.now());
+    }
+  }, [open]);
+
+  const handleManualRefresh = () => {
+    setIsRefreshing(true);
+    setStreamError(false);
+    setUseMjpeg(true); // Try MJPEG again on manual refresh
+    setImageKey(Date.now());
+    setTimeout(() => setIsRefreshing(false), 500);
+  };
+
+  const handleStreamError = () => {
+    console.error('MJPEG stream error, falling back to snapshot mode');
+    setStreamError(true);
+    setUseMjpeg(false);
+  };
+
+  // Auto-refresh for snapshot fallback mode (only when MJPEG fails)
+  useEffect(() => {
+    if (!open || !streamUrl || useMjpeg) return;
+
     const interval = setInterval(() => {
       setImageKey(Date.now());
     }, 500);
 
     return () => clearInterval(interval);
-  }, [open, streamUrl]);
-
-  const handleManualRefresh = () => {
-    setIsRefreshing(true);
-    setImageKey(Date.now());
-    setTimeout(() => setIsRefreshing(false), 500);
-  };
+  }, [open, streamUrl, useMjpeg]);
 
   return (
     <Modal isOpen={open} onClose={onClose} title={t("dashboard.liveStream", { defaultValue: "Live Stream" })}>
@@ -58,16 +78,25 @@ const LiveStreamModal = ({ open, onClose, onDetect, detecting, streamUrl }: Live
           </Button>
         </div>
         {streamUrl ? (
-          <img 
-            key={imageKey}
-            src={`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/pi-proxy?endpoint=/snapshot&t=${imageKey}`} 
-            alt="Raspberry Pi Stream" 
-            className="h-full w-full object-cover"
-            onError={(e) => {
-              console.error('Stream loading error');
-              e.currentTarget.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="100" height="100"%3E%3Crect fill="%23222" width="100" height="100"/%3E%3Ctext x="50%25" y="50%25" text-anchor="middle" dy=".3em" fill="%23666"%3ENo Stream%3C/text%3E%3C/svg%3E';
-            }}
-          />
+          <>
+            <img
+              ref={imgRef}
+              key={useMjpeg ? 'mjpeg' : `snapshot-${imageKey}`}
+              src={
+                useMjpeg
+                  ? `${streamUrl}/stream?t=${imageKey}`
+                  : `${streamUrl}/snapshot?t=${imageKey}`
+              }
+              alt="Raspberry Pi Stream"
+              className="h-full w-full object-cover"
+              onError={handleStreamError}
+            />
+            {streamError && (
+              <div className="absolute bottom-3 left-3 rounded bg-yellow-500/80 px-2 py-1 text-xs text-black">
+                Snapshot mode (MJPEG unavailable)
+              </div>
+            )}
+          </>
         ) : (
           <div className="flex h-full items-center justify-center">
             <div className="text-center">
@@ -82,9 +111,10 @@ const LiveStreamModal = ({ open, onClose, onDetect, detecting, streamUrl }: Live
         )}
       </div>
       <p className="mt-4 text-sm text-muted-foreground">
-        {t("dashboard.streamNote", {
-          defaultValue: "Stream updates every 500ms. Click refresh for immediate update.",
-        })}
+        {useMjpeg
+          ? t("dashboard.streamNoteMjpeg", { defaultValue: "Live MJPEG stream. Click refresh to reconnect if needed." })
+          : t("dashboard.streamNote", { defaultValue: "Snapshot mode - updates every 500ms. Click refresh for immediate update." })
+        }
       </p>
     </Modal>
   );
