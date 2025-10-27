@@ -133,6 +133,7 @@ serve(async (req) => {
   try {
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
     const raspberryPiApiKey = Deno.env.get("RASPBERRY_PI_API_KEY")!;
 
     // Verify API key from Raspberry Pi
@@ -256,11 +257,31 @@ serve(async (req) => {
     const authHeader = req.headers.get("Authorization");
     if (authHeader && authHeader.startsWith("Bearer ")) {
       const token = authHeader.substring(7);
-      // Verify token and get user
-      const { data: { user }, error: authError } = await supabase.auth.getUser(token);
-      if (!authError && user) {
-        userId = user.id;
-        logWithId("Authenticated user", { userId: user.id, email: user.email });
+
+      try {
+        // Create a client with anon key and user token to verify auth
+        const userSupabase = createClient(supabaseUrl, supabaseAnonKey, {
+          global: {
+            headers: {
+              Authorization: `Bearer ${token}`
+            }
+          },
+          auth: {
+            persistSession: false,
+            autoRefreshToken: false,
+          }
+        });
+
+        // Verify token and get user
+        const { data: { user }, error: authError } = await userSupabase.auth.getUser();
+        if (!authError && user) {
+          userId = user.id;
+          logWithId("Authenticated user", { userId: user.id, email: user.email });
+        } else {
+          logWithId("Auth verification failed", authError);
+        }
+      } catch (authErr) {
+        logWithId("Error during auth verification", authErr);
       }
     }
 

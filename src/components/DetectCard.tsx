@@ -84,6 +84,7 @@ const DetectCard = ({ detection, index, onDelete, deleting = false }: DetectCard
         whileHover={{ scale: 1.02 }}
         onClick={openModal}
         className="cursor-pointer"
+        data-detection-id={detection.id}
       >
         <Card className="bg-card border-border p-6 transition-all hover:border-primary">
           <div className="flex items-start justify-between gap-3">

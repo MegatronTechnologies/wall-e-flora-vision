@@ -43,6 +43,8 @@ const Dashboard = () => {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<Detection | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [newDetectionId, setNewDetectionId] = useState<string | null>(null);
+  const [isWaitingForDetection, setIsWaitingForDetection] = useState(false);
 
   const fetchDetections = useCallback(async () => {
     logger.debug("Dashboard", "Fetching detections");
@@ -78,24 +80,54 @@ const Dashboard = () => {
     fetchDetections();
     const channel = supabase
       .channel("detections-changes")
-      .on("postgres_changes", { event: "INSERT", schema: "public", table: "detections" }, () => {
-        logger.debug("Dashboard", "Realtime INSERT received, refreshing detections");
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "detections" }, (payload) => {
+        logger.debug("Dashboard", "Realtime INSERT received, refreshing detections", payload);
+
+        // If we're waiting for a detection from the DETECT button
+        if (isWaitingForDetection && payload.new?.id) {
+          setNewDetectionId(payload.new.id as string);
+          setIsWaitingForDetection(false);
+        }
+
         fetchDetections().then(() => setCurrentPage(1));
-        toast({
-          title: t("dashboard.newDetection", { defaultValue: "New detection received" }),
-          description: t("dashboard.newDetectionDescription", { defaultValue: "A new detection has been added." }),
-        });
+
+        // Only show toast if not from DETECT button (to avoid duplicate notifications)
+        if (!isWaitingForDetection) {
+          toast({
+            title: t("dashboard.newDetection", { defaultValue: "New detection received" }),
+            description: t("dashboard.newDetectionDescription", { defaultValue: "A new detection has been added." }),
+          });
+        }
       })
       .subscribe();
 
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [fetchDetections, toast, t]);
+  }, [fetchDetections, toast, t, isWaitingForDetection]);
 
   useEffect(() => {
     setCurrentPage(1);
   }, [statusFilter, deviceFilter, timeFilter, searchTerm]);
+
+  // Auto-open modal for new detection after DETECT button
+  useEffect(() => {
+    if (newDetectionId && detections.length > 0) {
+      const newDetection = detections.find(d => d.id === newDetectionId);
+      if (newDetection) {
+        logger.debug("Dashboard", "Auto-opening new detection", newDetectionId);
+        // Programmatically trigger the card click
+        // We'll use a timeout to ensure the DOM is updated
+        setTimeout(() => {
+          const cardElement = document.querySelector(`[data-detection-id="${newDetectionId}"]`);
+          if (cardElement instanceof HTMLElement) {
+            cardElement.click();
+          }
+        }, 300);
+        setNewDetectionId(null);
+      }
+    }
+  }, [newDetectionId, detections]);
 
   const uniqueDevices = useMemo(() => {
     const devices = new Set<string>();
@@ -152,6 +184,9 @@ const Dashboard = () => {
   const handleDetect = async () => {
     logger.debug("Dashboard", "Detect action triggered");
     setIsDetecting(true);
+    setIsWaitingForDetection(true);
+    setNewDetectionId(null);
+
     try {
       // Get current session token
       const { data: { session } } = await supabase.auth.getSession();
@@ -177,15 +212,23 @@ const Dashboard = () => {
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
 
       const result = await response.json();
+
+      // Show success toast
       toast({
         title: t("dashboard.detectSuccess", { defaultValue: "Detection successful" }),
-        description: `${result.status} (${result.confidence?.toFixed(1) || 'N/A'}%)`,
+        description: t("dashboard.detectProcessing", {
+          defaultValue: "Processing detection... New card will appear shortly."
+        }),
       });
 
+      // Wait a bit for the Edge Function to process and save to DB
+      await new Promise(resolve => setTimeout(resolve, 2000));
       await fetchDetections();
       setCurrentPage(1);
+
     } catch (error) {
       logger.error("Dashboard", "Detect request failed", error);
+      setIsWaitingForDetection(false);
       toast({
         title: t("common.error"),
         description: t("dashboard.detectError", { defaultValue: "Connection error" }),
