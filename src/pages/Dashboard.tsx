@@ -153,9 +153,25 @@ const Dashboard = () => {
     logger.debug("Dashboard", "Detect action triggered");
     setIsDetecting(true);
     try {
+      // Get current session token
+      const { data: { session } } = await supabase.auth.getSession();
+      const token = session?.access_token;
+
+      const headers: HeadersInit = {
+        "Content-Type": "application/json",
+      };
+
+      // Add Authorization header if token is available
+      if (token) {
+        headers["Authorization"] = `Bearer ${token}`;
+      }
+
       const response = await fetch(
         `${PI_DETECT_URL}/detect`,
-        { method: "POST" }
+        {
+          method: "POST",
+          headers
+        }
       );
 
       if (!response.ok) throw new Error(`HTTP ${response.status}`);

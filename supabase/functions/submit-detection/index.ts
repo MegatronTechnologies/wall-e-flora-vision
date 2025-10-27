@@ -7,6 +7,12 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, x-raspberry-pi-key, content-type",
 };
 
+const plantStatusSchema = z.object({
+  order_num: z.number().int().min(1).max(3),
+  status: z.enum(["healthy", "diseased"]),
+  confidence: z.number().min(0).max(100),
+});
+
 const detectionPayloadSchema = z.object({
   device_id: z.string().min(1, "device_id is required"),
   main_image: z
@@ -23,9 +29,15 @@ const detectionPayloadSchema = z.object({
     })
     .min(0)
     .max(100)
-    .optional(),
+    .optional()
+    .nullable(),
   metadata: z
-    .record(z.unknown())
+    .object({
+      plant_statuses: z.array(plantStatusSchema).max(3).optional(),
+      objectCount: z.number().optional(),
+      created_at: z.string().optional(),
+    })
+    .catchall(z.unknown())
     .optional()
     .default({}),
   plant_images: z
@@ -239,6 +251,19 @@ serve(async (req) => {
 
     console.log("Main image uploaded:", mainImageUrl);
 
+    // Get authenticated user from Authorization header (if present)
+    let userId: string | null = null;
+    const authHeader = req.headers.get("Authorization");
+    if (authHeader && authHeader.startsWith("Bearer ")) {
+      const token = authHeader.substring(7);
+      // Verify token and get user
+      const { data: { user }, error: authError } = await supabase.auth.getUser(token);
+      if (!authError && user) {
+        userId = user.id;
+        logWithId("Authenticated user", { userId: user.id, email: user.email });
+      }
+    }
+
     // Insert detection record
     const { data: detectionData, error: detectionError } = await supabase
       .from('detections')
@@ -247,7 +272,8 @@ serve(async (req) => {
         image_url: mainImageUrl,
         status,
         confidence: confidence || null,
-        metadata: metadata || {}
+        metadata: metadata || {},
+        user_id: userId
       })
       .select()
       .single();

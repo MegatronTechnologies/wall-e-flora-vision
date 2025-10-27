@@ -4,9 +4,18 @@ export type DetectionStatus = Tables<"detections">["status"];
 export type DetectionRow = Tables<"detections">;
 export type DetectionImageRow = Tables<"detection_images">;
 
+export interface PlantStatus {
+  order_num: number;
+  status: "healthy" | "diseased";
+  confidence: number;
+}
+
 export interface DetectionMetadata {
   temperature?: number;
   humidity?: number;
+  plant_statuses?: PlantStatus[];
+  objectCount?: number;
+  avgFps?: number;
   [key: string]: unknown;
 }
 

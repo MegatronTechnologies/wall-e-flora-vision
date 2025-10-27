@@ -181,11 +181,34 @@ const DetectCard = ({ detection, index, onDelete, deleting = false }: DetectCard
             {detection.plant_images.length > 0
               ? detection.plant_images
                   .sort((a, b) => a.order_num - b.order_num)
-                  .map((img) => (
-                    <div key={img.order_num} className="aspect-square rounded-lg bg-secondary overflow-hidden">
-                      <img src={img.image_url} alt={`Plant ${img.order_num}`} className="h-full w-full object-cover" />
-                    </div>
-                  ))
+                  .map((img) => {
+                    const plantStatus = detection.metadata?.plant_statuses?.find(
+                      (ps) => ps.order_num === img.order_num
+                    );
+                    const plantStatusColor = plantStatus?.status === "healthy"
+                      ? "text-green-500"
+                      : plantStatus?.status === "diseased"
+                      ? "text-primary"
+                      : "text-muted-foreground";
+
+                    return (
+                      <div key={img.order_num} className="space-y-2">
+                        <div className="aspect-square rounded-lg bg-secondary overflow-hidden">
+                          <img src={img.image_url} alt={`Plant ${img.order_num}`} className="h-full w-full object-cover" />
+                        </div>
+                        {plantStatus && (
+                          <div className="text-center space-y-1">
+                            <p className={`text-sm font-semibold ${plantStatusColor}`}>
+                              {t(`dashboard.${plantStatus.status}`)}
+                            </p>
+                            <p className="text-xs text-muted-foreground">
+                              {plantStatus.confidence.toFixed(1)}%
+                            </p>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })
               : [1, 2, 3].map((placeholder) => (
                   <div
                     key={placeholder}

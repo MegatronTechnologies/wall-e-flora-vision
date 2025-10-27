@@ -155,6 +155,164 @@ def summarize_detections(boxes, labels) -> Tuple[str, Optional[float], int]:
     return "healthy", highest_conf, kept
 
 
+def calculate_iou(box1, box2) -> float:
+    """Calculate Intersection over Union (IoU) between two bounding boxes."""
+    x1_min, y1_min, x1_max, y1_max = box1
+    x2_min, y2_min, x2_max, y2_max = box2
+
+    # Calculate intersection area
+    inter_x_min = max(x1_min, x2_min)
+    inter_y_min = max(y1_min, y2_min)
+    inter_x_max = min(x1_max, x2_max)
+    inter_y_max = min(y1_max, y2_max)
+
+    if inter_x_max < inter_x_min or inter_y_max < inter_y_min:
+        return 0.0
+
+    inter_area = (inter_x_max - inter_x_min) * (inter_y_max - inter_y_min)
+
+    # Calculate union area
+    box1_area = (x1_max - x1_min) * (y1_max - y1_min)
+    box2_area = (x2_max - x2_min) * (y2_max - y2_min)
+    union_area = box1_area + box2_area - inter_area
+
+    if union_area == 0:
+        return 0.0
+
+    return inter_area / union_area
+
+
+def analyze_detection_with_crops(frame: np.ndarray, boxes, labels_dict: Dict) -> Dict[str, object]:
+    """
+    Analyze detection frame and create crops for each chrysanthemum plant.
+
+    Returns:
+        {
+            "main_image_b64": str,
+            "plant_images_b64": List[str],
+            "overall_status": str,
+            "plant_statuses": List[Dict],
+            "confidence": float
+        }
+    """
+    h, w = frame.shape[:2]
+
+    if boxes is None or len(boxes) == 0:
+        # No objects detected
+        main_image_b64 = encode_frame_to_base64(frame, "main.jpg")["data"]
+        return {
+            "main_image_b64": main_image_b64,
+            "plant_images_b64": [],
+            "overall_status": "noObjects",
+            "plant_statuses": [],
+            "confidence": None
+        }
+
+    # Collect chrysanthemum and mealybug detections
+    chrysanthemums = []
+    mealybugs = []
+
+    for box in boxes:
+        conf = float(box.conf.item())
+        if conf < CONF_THRESHOLD:
+            continue
+
+        class_idx = int(box.cls.item())
+        classname = labels_dict.get(class_idx, str(class_idx)).lower()
+
+        xyxy_tensor = box.xyxy.cpu()
+        xyxy = xyxy_tensor.numpy().squeeze()
+        xmin, ymin, xmax, ymax = xyxy.astype(int)
+        xmin, ymin, xmax, ymax = safe_bbox_coords(xmin, ymin, xmax, ymax, w, h)
+
+        if "chrysanthemum" in classname:
+            chrysanthemums.append({
+                "bbox": (xmin, ymin, xmax, ymax),
+                "confidence": conf * 100.0
+            })
+        elif "mealybug" in classname:
+            mealybugs.append({
+                "bbox": (xmin, ymin, xmax, ymax),
+                "confidence": conf * 100.0
+            })
+
+    # If no chrysanthemums found, return noObjects
+    if not chrysanthemums:
+        main_image_b64 = encode_frame_to_base64(frame, "main.jpg")["data"]
+        return {
+            "main_image_b64": main_image_b64,
+            "plant_images_b64": [],
+            "overall_status": "noObjects",
+            "plant_statuses": [],
+            "confidence": None
+        }
+
+    # Limit to 3 plants maximum
+    chrysanthemums = chrysanthemums[:3]
+
+    # Analyze each chrysanthemum for mealybug infection
+    plant_statuses = []
+    plant_images_b64 = []
+
+    for idx, plant in enumerate(chrysanthemums, start=1):
+        plant_bbox = plant["bbox"]
+        plant_conf = plant["confidence"]
+
+        # Check if any mealybug intersects with this plant (IoU > 0.3)
+        is_diseased = False
+        for mealybug in mealybugs:
+            iou = calculate_iou(plant_bbox, mealybug["bbox"])
+            if iou > 0.3:
+                is_diseased = True
+                break
+
+        # Determine plant status
+        plant_status = "diseased" if is_diseased else "healthy"
+        plant_statuses.append({
+            "order_num": idx,
+            "status": plant_status,
+            "confidence": round(plant_conf, 2)
+        })
+
+        # Create crop with 10% expansion
+        xmin, ymin, xmax, ymax = plant_bbox
+        bbox_w = xmax - xmin
+        bbox_h = ymax - ymin
+        expansion = 0.1
+
+        crop_xmin = max(0, int(xmin - bbox_w * expansion))
+        crop_ymin = max(0, int(ymin - bbox_h * expansion))
+        crop_xmax = min(w, int(xmax + bbox_w * expansion))
+        crop_ymax = min(h, int(ymax + bbox_h * expansion))
+
+        crop = frame[crop_ymin:crop_ymax, crop_xmin:crop_xmax]
+        crop_b64 = encode_frame_to_base64(crop, f"plant_{idx}.jpg")["data"]
+        plant_images_b64.append(crop_b64)
+
+    # Determine overall status
+    statuses = [p["status"] for p in plant_statuses]
+    if all(s == "healthy" for s in statuses):
+        overall_status = "healthy"
+    elif all(s == "diseased" for s in statuses):
+        overall_status = "diseased"
+    else:
+        overall_status = "mixed"
+
+    # Calculate average confidence
+    avg_confidence = sum(p["confidence"] for p in plant_statuses) / len(plant_statuses)
+
+    # Encode main image
+    main_image_b64 = encode_frame_to_base64(frame, "main.jpg")["data"]
+
+    return {
+        "main_image_b64": main_image_b64,
+        "plant_images_b64": plant_images_b64,
+        "overall_status": overall_status,
+        "plant_statuses": plant_statuses,
+        "confidence": round(avg_confidence, 2)
+    }
+
+
 def encode_frame_to_base64(frame: np.ndarray, filename: str) -> Dict[str, str]:
     success, buffer = cv2.imencode(".jpg", frame, [int(cv2.IMWRITE_JPEG_QUALITY), JPEG_QUALITY])
     if not success:
@@ -616,28 +774,89 @@ class DetectionService:
                 "endpoint": ENDPOINT,
             }
 
-    def trigger_detection(self) -> Dict[str, object]:
+    def trigger_detection(self, user_token: Optional[str] = None) -> Dict[str, object]:
         """Manually trigger detection and send to cloud immediately."""
         with self.lock:
+            # Get the original frame (without annotations) for fresh YOLO inference
             frame = None if self.state.latest_frame is None else self.state.latest_frame.copy()
-            status = self.state.status
-            confidence = self.state.confidence
-            count = self.state.object_count
-            fps = self.state.avg_fps
 
         if frame is None:
             return {"success": False, "error": "no_frame_available"}
 
-        # Force send detection immediately
-        self._send_detection(frame, status, confidence, count, fps)
+        try:
+            # Run fresh YOLO inference on the frame
+            results = self.model(frame, verbose=False)
+            boxes = results[0].boxes if results else None
 
-        return {
-            "success": True,
-            "status": status,
-            "confidence": confidence,
-            "objectCount": count,
-            "timestamp": iso_now(),
+            # Use new analysis function to get crops and detailed statuses
+            analysis = analyze_detection_with_crops(frame, boxes, self.labels)
+
+            # Send detection with plant images and statuses
+            self._send_detection_with_crops(analysis, user_token=user_token)
+
+            return {
+                "success": True,
+                "status": analysis["overall_status"],
+                "confidence": analysis["confidence"],
+                "objectCount": len(analysis["plant_statuses"]),
+                "timestamp": iso_now(),
+            }
+        except Exception as exc:
+            logger.error(f"Error in trigger_detection: {exc}", exc_info=True)
+            return {"success": False, "error": str(exc)}
+
+    def _send_detection_with_crops(self, analysis: Dict[str, object], user_token: Optional[str] = None) -> None:
+        """Send detection with plant crops and individual statuses to cloud."""
+        lovable_enabled = bool(ENDPOINT and API_KEY and DEVICE_ID and SUPABASE_ANON_KEY)
+        if not lovable_enabled:
+            logger.warning("Cloud submission not enabled - missing credentials")
+            return
+
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+
+        # Prepare metadata with plant statuses
+        metadata = {
+            "objectCount": len(analysis["plant_statuses"]),
+            "created_at": iso_now(),
+            "plant_statuses": analysis["plant_statuses"]
         }
+
+        payload = {
+            "device_id": DEVICE_ID,
+            "status": analysis["overall_status"],
+            "confidence": analysis["confidence"],
+            "main_image": analysis["main_image_b64"],
+            "plant_images": analysis["plant_images_b64"],
+            "metadata": metadata,
+        }
+
+        # Use user token if provided, otherwise use anon key
+        auth_token = user_token if user_token else SUPABASE_ANON_KEY
+        headers = {
+            "Authorization": f"Bearer {auth_token}",
+            "apikey": SUPABASE_ANON_KEY,
+            "X-Raspberry-Pi-Key": API_KEY,
+            "Content-Type": "application/json",
+        }
+
+        try:
+            response = self.session.post(ENDPOINT, headers=headers, json=payload, timeout=30)
+            response.raise_for_status()
+            lovable_response = (
+                response.json()
+                if "application/json" in response.headers.get("Content-Type", "")
+                else {"status_code": response.status_code}
+            )
+            logger.info(f"Detection with crops sent successfully -> {lovable_response}")
+
+            with self.lock:
+                self.state.last_send_response = lovable_response
+                self.state.last_send_error = None
+
+        except requests.RequestException as exc:
+            logger.error(f"Error sending detection with crops: {exc}")
+            with self.lock:
+                self.state.last_send_error = str(exc)
 
     def _send_supabase(self, payload: Dict[str, object], main_image: Dict[str, str], timestamp: str) -> None:
         if not self.supabase_writer.is_enabled():
@@ -712,7 +931,13 @@ def status():
 @app.route("/detect", methods=["POST"])
 def detect():
     """Trigger manual detection and send to cloud immediately."""
-    result = service.trigger_detection()
+    # Get user token from Authorization header if present
+    auth_header = request.headers.get("Authorization")
+    user_token = None
+    if auth_header and auth_header.startswith("Bearer "):
+        user_token = auth_header.split(" ")[1]
+
+    result = service.trigger_detection(user_token=user_token)
     if result.get("success"):
         return jsonify(result), 200
     else:
