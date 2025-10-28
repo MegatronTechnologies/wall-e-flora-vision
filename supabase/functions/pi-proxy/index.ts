@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.7.1";
 import { corsHeaders } from "../_shared/cors.ts";
 
 const PI_URL = Deno.env.get("VITE_PI_STREAM_URL") || "http://192.168.1.100:8080";
@@ -20,15 +21,53 @@ serve(async (req) => {
       );
     }
 
+    // Get authenticated user for /detect endpoint
+    let authHeader: string | null = null;
+    if (endpoint === "/detect") {
+      const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+      const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
+      const supabaseClient = createClient(supabaseUrl, supabaseAnonKey, {
+        global: {
+          headers: {
+            Authorization: req.headers.get("Authorization")!,
+          },
+        },
+        auth: {
+          persistSession: false,
+        },
+      });
+
+      const { data: { user }, error } = await supabaseClient.auth.getUser();
+      
+      if (error || !user) {
+        console.error("Authentication failed:", error);
+        return new Response(
+          JSON.stringify({ error: "Unauthorized. Please log in." }),
+          { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      // Get the user's access token to pass to Raspberry Pi
+      authHeader = req.headers.get("Authorization");
+      console.log("User authenticated:", user.email);
+    }
+
     // Proxy request to Raspberry Pi
     const piUrl = `${PI_URL}${endpoint}`;
     const method = req.method;
     
+    // Add Authorization header for /detect endpoint
+    const headers: Record<string, string> = {
+      "Content-Type": "application/json",
+    };
+    
+    if (authHeader) {
+      headers["Authorization"] = authHeader;
+    }
+
     const piResponse = await fetch(piUrl, {
       method,
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers,
     });
 
     // Handle snapshot endpoint (returns image)

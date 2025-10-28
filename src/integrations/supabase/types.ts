@@ -55,7 +55,7 @@ export type Database = {
           image_url: string
           metadata: Json | null
           status: Database["public"]["Enums"]["detection_status"]
-          user_id: string | null
+          user_id: string
         }
         Insert: {
           confidence?: number | null
@@ -65,7 +65,7 @@ export type Database = {
           image_url: string
           metadata?: Json | null
           status: Database["public"]["Enums"]["detection_status"]
-          user_id?: string | null
+          user_id: string
         }
         Update: {
           confidence?: number | null
@@ -75,7 +75,7 @@ export type Database = {
           image_url?: string
           metadata?: Json | null
           status?: Database["public"]["Enums"]["detection_status"]
-          user_id?: string | null
+          user_id?: string
         }
         Relationships: []
       }
