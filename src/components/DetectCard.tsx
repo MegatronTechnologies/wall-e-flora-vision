@@ -1,4 +1,4 @@
-import { useMemo, useState, type MouseEvent } from "react";
+import { useEffect, useMemo, useState, type MouseEvent } from "react";
 import { useTranslation } from "react-i18next";
 import { motion } from "framer-motion";
 import { Card } from "@/components/ui/card";
@@ -13,12 +13,22 @@ interface DetectCardProps {
   index: number;
   onDelete?: (detection: Detection) => void;
   deleting?: boolean;
+  shouldAutoOpen?: boolean;
+  onAutoOpenComplete?: () => void;
 }
 
-const DetectCard = ({ detection, index, onDelete, deleting = false }: DetectCardProps) => {
+const DetectCard = ({ detection, index, onDelete, deleting = false, shouldAutoOpen = false, onAutoOpenComplete }: DetectCardProps) => {
   const { t } = useTranslation();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [imageVersion, setImageVersion] = useState(() => Date.now());
+
+  useEffect(() => {
+    if (shouldAutoOpen) {
+      logger.debug("DetectCard", "Auto-opening modal for detection", detection.id);
+      setIsModalOpen(true);
+      onAutoOpenComplete?.();
+    }
+  }, [shouldAutoOpen, detection.id, onAutoOpenComplete]);
   const metadataEntries = useMemo(
     () => Object.entries(detection.metadata ?? {}).filter(([, value]) => value !== undefined && value !== null),
     [detection.metadata],

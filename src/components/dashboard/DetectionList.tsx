@@ -15,6 +15,8 @@ interface DetectionListProps {
   pageSize: number;
   onDelete: (detection: Detection) => void;
   deletingId: string | null;
+  autoOpenDetectionId?: string | null;
+  onAutoOpenComplete?: () => void;
 }
 
 const DetectionList = ({
@@ -26,6 +28,8 @@ const DetectionList = ({
   pageSize,
   onDelete,
   deletingId,
+  autoOpenDetectionId,
+  onAutoOpenComplete,
 }: DetectionListProps) => {
   const { t } = useTranslation();
 
@@ -83,6 +87,8 @@ const DetectionList = ({
           index={(currentPage - 1) * pageSize + idx}
           onDelete={onDelete}
           deleting={deletingId === detection.id}
+          shouldAutoOpen={autoOpenDetectionId === detection.id}
+          onAutoOpenComplete={onAutoOpenComplete}
         />
       ))}
     </div>

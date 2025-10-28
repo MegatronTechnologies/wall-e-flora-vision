@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { motion } from "framer-motion";
 import Navbar from "@/components/Navbar";
@@ -43,8 +43,8 @@ const Dashboard = () => {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<Detection | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
-  const [newDetectionId, setNewDetectionId] = useState<string | null>(null);
-  const [isWaitingForDetection, setIsWaitingForDetection] = useState(false);
+  const [autoOpenDetectionId, setAutoOpenDetectionId] = useState<string | null>(null);
+  const isWaitingForDetectionRef = useRef(false);
 
   const fetchDetections = useCallback(async () => {
     logger.debug("Dashboard", "Fetching detections");
@@ -84,15 +84,15 @@ const Dashboard = () => {
         logger.debug("Dashboard", "Realtime INSERT received, refreshing detections", payload);
 
         // If we're waiting for a detection from the DETECT button
-        if (isWaitingForDetection && payload.new?.id) {
-          setNewDetectionId(payload.new.id as string);
-          setIsWaitingForDetection(false);
+        if (isWaitingForDetectionRef.current && payload.new?.id) {
+          setAutoOpenDetectionId(payload.new.id as string);
+          isWaitingForDetectionRef.current = false;
         }
 
         fetchDetections().then(() => setCurrentPage(1));
 
         // Only show toast if not from DETECT button (to avoid duplicate notifications)
-        if (!isWaitingForDetection) {
+        if (!isWaitingForDetectionRef.current) {
           toast({
             title: t("dashboard.newDetection", { defaultValue: "New detection received" }),
             description: t("dashboard.newDetectionDescription", { defaultValue: "A new detection has been added." }),
@@ -104,30 +104,12 @@ const Dashboard = () => {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [fetchDetections, toast, t, isWaitingForDetection]);
+  }, [fetchDetections, toast, t]);
 
   useEffect(() => {
     setCurrentPage(1);
   }, [statusFilter, deviceFilter, timeFilter, searchTerm]);
 
-  // Auto-open modal for new detection after DETECT button
-  useEffect(() => {
-    if (newDetectionId && detections.length > 0) {
-      const newDetection = detections.find(d => d.id === newDetectionId);
-      if (newDetection) {
-        logger.debug("Dashboard", "Auto-opening new detection", newDetectionId);
-        // Programmatically trigger the card click
-        // We'll use a timeout to ensure the DOM is updated
-        setTimeout(() => {
-          const cardElement = document.querySelector(`[data-detection-id="${newDetectionId}"]`);
-          if (cardElement instanceof HTMLElement) {
-            cardElement.click();
-          }
-        }, 300);
-        setNewDetectionId(null);
-      }
-    }
-  }, [newDetectionId, detections]);
 
   const uniqueDevices = useMemo(() => {
     const devices = new Set<string>();
@@ -184,8 +166,8 @@ const Dashboard = () => {
   const handleDetect = async () => {
     logger.debug("Dashboard", "Detect action triggered");
     setIsDetecting(true);
-    setIsWaitingForDetection(true);
-    setNewDetectionId(null);
+    isWaitingForDetectionRef.current = true;
+    setAutoOpenDetectionId(null);
 
     try {
       // Get current session token
@@ -228,7 +210,7 @@ const Dashboard = () => {
 
     } catch (error) {
       logger.error("Dashboard", "Detect request failed", error);
-      setIsWaitingForDetection(false);
+      isWaitingForDetectionRef.current = false;
       toast({
         title: t("common.error"),
         description: t("dashboard.detectError", { defaultValue: "Connection error" }),
@@ -394,6 +376,8 @@ const Dashboard = () => {
               pageSize={PAGE_SIZE}
               onDelete={handleDeleteRequest}
               deletingId={deletingId}
+              autoOpenDetectionId={autoOpenDetectionId}
+              onAutoOpenComplete={() => setAutoOpenDetectionId(null)}
             />
             {renderPagination()}
           </div>
