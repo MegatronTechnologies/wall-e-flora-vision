@@ -396,6 +396,8 @@ const Dashboard = () => {
               pageSize={PAGE_SIZE}
               onDelete={handleDeleteRequest}
               deletingId={deletingId}
+              autoOpenDetectionId={autoOpenDetectionId}
+              onAutoOpenComplete={() => setAutoOpenDetectionId(null)}
             />
             {renderPagination()}
           </div>
