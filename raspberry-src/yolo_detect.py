@@ -713,6 +713,21 @@ class DetectionService:
             "Content-Type": "application/json",
         }
 
+        # Debug logging для диагностики авторизации
+        logger.debug(f"=== SEND DETECTION DEBUG INFO ===")
+        logger.debug(f"DEVICE_ID: {DEVICE_ID}")
+        logger.debug(f"ENDPOINT: {ENDPOINT}")
+        logger.debug(f"API_KEY present: {API_KEY is not None}")
+        if API_KEY:
+            logger.debug(f"API_KEY (masked): {API_KEY[:8]}...{API_KEY[-8:]}")
+        else:
+            logger.warning("API_KEY is None! Check environment variables.")
+        logger.debug(f"SUPABASE_ANON_KEY present: {SUPABASE_ANON_KEY is not None}")
+        if SUPABASE_ANON_KEY:
+            logger.debug(f"SUPABASE_ANON_KEY (first 20 chars): {SUPABASE_ANON_KEY[:20]}...")
+        logger.debug(f"Headers keys: {list(headers.keys())}")
+        logger.debug(f"=================================")
+
         lovable_response: Optional[Dict[str, object]] = None
         lovable_error: Optional[str] = None
 
