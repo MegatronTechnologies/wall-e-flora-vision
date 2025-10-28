@@ -44,6 +44,7 @@ const Dashboard = () => {
   const [deleteTarget, setDeleteTarget] = useState<Detection | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [autoOpenDetectionId, setAutoOpenDetectionId] = useState<string | null>(null);
+  
   const isWaitingForDetectionRef = useRef(false);
 
   const fetchDetections = useCallback(async () => {
@@ -78,6 +79,7 @@ const Dashboard = () => {
 
   useEffect(() => {
     fetchDetections();
+    
     const channel = supabase
       .channel("detections-changes")
       .on("postgres_changes", { event: "INSERT", schema: "public", table: "detections" }, (payload) => {
@@ -110,6 +112,24 @@ const Dashboard = () => {
     setCurrentPage(1);
   }, [statusFilter, deviceFilter, timeFilter, searchTerm]);
 
+  // Auto-open modal for new detection after DETECT button
+  useEffect(() => {
+    if (autoOpenDetectionId && detections.length > 0) {
+      const newDetection = detections.find(d => d.id === autoOpenDetectionId);
+      if (newDetection) {
+        logger.debug("Dashboard", "Auto-opening new detection", autoOpenDetectionId);
+        // Programmatically trigger the card click
+        // We'll use a timeout to ensure the DOM is updated
+        setTimeout(() => {
+          const cardElement = document.querySelector(`[data-detection-id="${autoOpenDetectionId}"]`);
+          if (cardElement instanceof HTMLElement) {
+            cardElement.click();
+          }
+        }, 300);
+        setAutoOpenDetectionId(null);
+      }
+    }
+  }, [autoOpenDetectionId, detections]);
 
   const uniqueDevices = useMemo(() => {
     const devices = new Set<string>();
@@ -376,8 +396,6 @@ const Dashboard = () => {
               pageSize={PAGE_SIZE}
               onDelete={handleDeleteRequest}
               deletingId={deletingId}
-              autoOpenDetectionId={autoOpenDetectionId}
-              onAutoOpenComplete={() => setAutoOpenDetectionId(null)}
             />
             {renderPagination()}
           </div>
