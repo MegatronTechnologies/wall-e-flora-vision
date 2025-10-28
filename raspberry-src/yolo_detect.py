@@ -707,6 +707,7 @@ class DetectionService:
         }
 
         headers = {
+            "Authorization": f"Bearer {SUPABASE_ANON_KEY}",
             "apikey": SUPABASE_ANON_KEY,
             "X-Raspberry-Pi-Key": API_KEY,
             "Content-Type": "application/json",
