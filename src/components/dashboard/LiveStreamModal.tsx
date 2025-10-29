@@ -3,6 +3,8 @@ import { Button } from "@/components/ui/button";
 import { Loader2, RefreshCw } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useState, useEffect, useRef } from "react";
+import { useToast } from "@/hooks/use-toast";
+import { logger } from "@/lib/logger";
 
 interface LiveStreamModalProps {
   open: boolean;
@@ -14,11 +16,13 @@ interface LiveStreamModalProps {
 
 const LiveStreamModal = ({ open, onClose, onDetect, detecting, streamUrl }: LiveStreamModalProps) => {
   const { t } = useTranslation();
+  const { toast } = useToast();
   const [imageKey, setImageKey] = useState(Date.now());
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [streamError, setStreamError] = useState(false);
   const [useMjpeg, setUseMjpeg] = useState(true);
   const imgRef = useRef<HTMLImageElement>(null);
+  const hasShownErrorToast = useRef(false);
 
   // Reset state when modal opens
   useEffect(() => {
@@ -26,6 +30,7 @@ const LiveStreamModal = ({ open, onClose, onDetect, detecting, streamUrl }: Live
       setStreamError(false);
       setUseMjpeg(true);
       setImageKey(Date.now());
+      hasShownErrorToast.current = false;
     }
   }, [open]);
 
@@ -38,9 +43,21 @@ const LiveStreamModal = ({ open, onClose, onDetect, detecting, streamUrl }: Live
   };
 
   const handleStreamError = () => {
-    console.error('MJPEG stream error, falling back to snapshot mode');
+    logger.error('LiveStreamModal', 'MJPEG stream error, falling back to snapshot mode');
     setStreamError(true);
     setUseMjpeg(false);
+    
+    // Show toast only once per modal open
+    if (!hasShownErrorToast.current && streamUrl) {
+      hasShownErrorToast.current = true;
+      toast({
+        title: t("dashboard.errors.streamTitle", { defaultValue: "Stream connection issue" }),
+        description: t("dashboard.errors.streamDesc", { 
+          defaultValue: "Cannot load live MJPEG stream. Switched to snapshot mode (slower)." 
+        }),
+        variant: "destructive",
+      });
+    }
   };
 
   // Auto-refresh for snapshot fallback mode (only when MJPEG fails)

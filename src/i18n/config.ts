@@ -108,6 +108,18 @@ const resources = {
           last24h: 'Son 24 saat',
           last7d: 'Son 7 gün',
         },
+        errors: {
+          connectionTitle: 'Bağlantı xətası',
+          connectionDesc: 'Raspberry Pi ilə əlaqə yaratmaq mümkün olmadı. Cihazın onlayn olduğunu və şəbəkə bağlantısının stabil olduğunu yoxlayın.',
+          authTitle: 'Autentifikasiya xətası',
+          authDesc: 'Sessiyanın müddəti bitib. Səhifəni yeniləyin və yenidən daxil olun.',
+          serverTitle: 'Server xətası',
+          serverDesc: 'Raspberry Pi-də xəta baş verdi. Cihaz loglarını yoxlayın.',
+          endpointTitle: 'Xidmət tapılmadı',
+          endpointDesc: 'Deteksiya xidməti Raspberry Pi-də mövcud deyil.',
+          streamTitle: 'Yayın bağlantı problemi',
+          streamDesc: 'MJPEG canlı yayımı yüklənmir. Snapshot rejiminə keçildi (daha yavaş).',
+        },
       },
       
       // Admin
@@ -287,6 +299,18 @@ const resources = {
           all: 'All time',
           last24h: 'Last 24 hours',
           last7d: 'Last 7 days',
+        },
+        errors: {
+          connectionTitle: 'Connection failed',
+          connectionDesc: 'Cannot reach Raspberry Pi. Check if device is online and network connection is stable.',
+          authTitle: 'Authentication error',
+          authDesc: 'Session expired. Please refresh the page and login again.',
+          serverTitle: 'Server error',
+          serverDesc: 'Raspberry Pi encountered an error. Check device logs.',
+          endpointTitle: 'Endpoint not found',
+          endpointDesc: 'Detection service not available on Raspberry Pi.',
+          streamTitle: 'Stream connection issue',
+          streamDesc: 'Cannot load live MJPEG stream. Switched to snapshot mode (slower).',
         },
       },
       
