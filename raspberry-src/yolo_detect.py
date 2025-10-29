@@ -717,9 +717,8 @@ class DetectionService:
         logger.debug(f"=== SEND DETECTION DEBUG INFO ===")
         logger.debug(f"DEVICE_ID: {DEVICE_ID}")
         logger.debug(f"ENDPOINT: {ENDPOINT}")
-        logger.debug(f"API_KEY present: {API_KEY is not None}")
         if API_KEY:
-            logger.debug(f"API_KEY (masked): {API_KEY[:8]}...{API_KEY[-8:]}")
+            logger.debug("API_KEY present: True")
         else:
             logger.warning("API_KEY is None! Check environment variables.")
         logger.debug(f"SUPABASE_ANON_KEY present: {SUPABASE_ANON_KEY is not None}")

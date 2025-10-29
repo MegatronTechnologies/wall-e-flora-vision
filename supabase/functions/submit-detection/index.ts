@@ -101,11 +101,17 @@ const uploadImage = async (
     throw new Error(`Failed to upload ${label}`);
   }
 
-  const { data: urlData } = supabase.storage
+  // Use signed URLs with 24-hour expiration for better security
+  const { data: urlData, error: urlError } = await supabase.storage
     .from("detection-images")
-    .getPublicUrl(filePath);
+    .createSignedUrl(filePath, 86400); // 24 hours
 
-  return urlData.publicUrl;
+  if (urlError) {
+    console.error(`Error creating signed URL for ${label}:`, urlError);
+    throw new Error(`Failed to create signed URL for ${label}`);
+  }
+
+  return urlData.signedUrl;
 };
 
 serve(async (req) => {
