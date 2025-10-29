@@ -10,6 +10,20 @@ import { Bot } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { logger } from "@/lib/logger";
 import { useAuth } from "@/context/AuthContext";
+import { z } from "zod";
+
+const loginSchema = z.object({
+  email: z
+    .string()
+    .trim()
+    .min(1, { message: "Email is required" })
+    .email({ message: "Invalid email format" })
+    .max(255, { message: "Email must be less than 255 characters" }),
+  password: z
+    .string()
+    .min(6, { message: "Password must be at least 6 characters" })
+    .max(128, { message: "Password must be less than 128 characters" }),
+});
 
 const Login = () => {
   const { t } = useTranslation();
@@ -37,19 +51,24 @@ const Login = () => {
     event.preventDefault();
     logger.debug("LoginPage", "Attempting login", { email });
 
-    if (!email || !password) {
-      logger.warn("LoginPage", "Missing credentials");
+    // Validate input with Zod
+    const validation = loginSchema.safeParse({ email, password });
+    if (!validation.success) {
+      const firstError = validation.error.errors[0];
+      logger.warn("LoginPage", "Validation failed", firstError);
       toast({
         title: t("common.error", { defaultValue: "Xəta baş verdi" }),
-        description: t("auth.missingCredentials", { defaultValue: "Email və parol boş ola bilməz" }),
+        description: firstError.message,
         variant: "destructive",
       });
       return;
     }
 
+    const validatedData = validation.data;
+
     setSubmitting(true);
     try {
-      const { role: signInRole } = await signIn(email, password);
+      const { role: signInRole } = await signIn(validatedData.email, validatedData.password);
       const fromState = location.state as { from?: { pathname: string } } | undefined;
       const destination = fromState?.from?.pathname ?? (signInRole === "superadmin" ? "/admin" : "/dashboard");
       logger.info("LoginPage", "Login successful, redirecting", destination);

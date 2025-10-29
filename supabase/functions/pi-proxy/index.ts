@@ -25,19 +25,21 @@ serve(async (req) => {
     let authHeader: string | null = null;
     if (endpoint === "/detect") {
       const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-      const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
-      const supabaseClient = createClient(supabaseUrl, supabaseAnonKey, {
-        global: {
-          headers: {
-            Authorization: req.headers.get("Authorization")!,
-          },
-        },
-        auth: {
-          persistSession: false,
-        },
-      });
+      const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+      
+      authHeader = req.headers.get("Authorization");
+      
+      if (!authHeader?.startsWith("Bearer ")) {
+        console.error("Missing or invalid Authorization header");
+        return new Response(
+          JSON.stringify({ error: "Unauthorized. Please log in." }),
+          { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
 
-      const { data: { user }, error } = await supabaseClient.auth.getUser();
+      const token = authHeader.substring(7);
+      const adminClient = createClient(supabaseUrl, supabaseServiceKey);
+      const { data: { user }, error } = await adminClient.auth.getUser(token);
       
       if (error || !user) {
         console.error("Authentication failed:", error);
@@ -47,8 +49,6 @@ serve(async (req) => {
         );
       }
 
-      // Get the user's access token to pass to Raspberry Pi
-      authHeader = req.headers.get("Authorization");
       console.log("User authenticated:", user.email);
     }
 

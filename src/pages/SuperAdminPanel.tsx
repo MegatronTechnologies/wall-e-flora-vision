@@ -17,6 +17,26 @@ import AdminUserFormDialog, { type FormState } from "@/components/superadmin/Adm
 import AdminDeleteDialog from "@/components/superadmin/AdminDeleteDialog";
 import AdminInfoAlerts from "@/components/superadmin/AdminInfoAlerts";
 import { logger } from "@/lib/logger";
+import { z } from "zod";
+
+const passwordSchema = z
+  .string()
+  .min(6, { message: "Password must be at least 6 characters" })
+  .max(128, { message: "Password must be less than 128 characters" });
+
+const userFormSchema = z.object({
+  email: z
+    .string()
+    .trim()
+    .min(1, { message: "Email is required" })
+    .email({ message: "Invalid email format" })
+    .max(255, { message: "Email must be less than 255 characters" }),
+  full_name: z
+    .string()
+    .trim()
+    .max(100, { message: "Full name must be less than 100 characters" }),
+  role: z.enum(["user", "superadmin"]),
+});
 
 const SuperAdminPanel = () => {
   const { t } = useTranslation();
@@ -140,9 +160,21 @@ const SuperAdminPanel = () => {
       return;
     }
 
+    // Validate form data with Zod
+    const formValidation = userFormSchema.safeParse(formState);
+    if (!formValidation.success) {
+      const firstError = formValidation.error.errors[0];
+      toast({ title: t("common.error"), description: firstError.message, variant: "destructive" });
+      setSaving(false);
+      return;
+    }
+
+    // Validate password for new users
     if (!formState.id) {
-      if (password.length < 6) {
-        toast({ title: t("common.error"), description: t("auth.passwordTooShort"), variant: "destructive" });
+      const passwordValidation = passwordSchema.safeParse(password);
+      if (!passwordValidation.success) {
+        const firstError = passwordValidation.error.errors[0];
+        toast({ title: t("common.error"), description: firstError.message, variant: "destructive" });
         setSaving(false);
         return;
       }

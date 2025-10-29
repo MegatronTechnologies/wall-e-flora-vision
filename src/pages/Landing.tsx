@@ -10,6 +10,26 @@ import Footer from '@/components/Footer';
 import { Sprout, Users, Mail } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { logger } from '@/lib/logger';
+import { z } from 'zod';
+
+const contactSchema = z.object({
+  name: z
+    .string()
+    .trim()
+    .min(1, { message: "Name is required" })
+    .max(100, { message: "Name must be less than 100 characters" }),
+  email: z
+    .string()
+    .trim()
+    .min(1, { message: "Email is required" })
+    .email({ message: "Invalid email format" })
+    .max(255, { message: "Email must be less than 255 characters" }),
+  message: z
+    .string()
+    .trim()
+    .min(1, { message: "Message is required" })
+    .max(2000, { message: "Message must be less than 2000 characters" }),
+});
 
 const Landing = () => {
   const { t } = useTranslation();
@@ -21,23 +41,28 @@ const Landing = () => {
   const handleContact = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const formData = new FormData(event.currentTarget);
-    const payload = {
-      name: formData.get('name'),
-      email: formData.get('email'),
-      message: formData.get('message'),
+    const rawPayload = {
+      name: formData.get('name') as string,
+      email: formData.get('email') as string,
+      message: formData.get('message') as string,
     };
 
-    logger.debug('LandingPage', 'Submitting contact form', payload);
+    logger.debug('LandingPage', 'Submitting contact form');
 
-    if (!payload.name || !payload.email || !payload.message) {
-      logger.warn('LandingPage', 'Contact form validation failed', payload);
+    // Validate with Zod
+    const validation = contactSchema.safeParse(rawPayload);
+    if (!validation.success) {
+      const firstError = validation.error.errors[0];
+      logger.warn('LandingPage', 'Contact form validation failed', firstError);
       toast({
         title: t('common.error'),
-        description: t('contact.validationError', { defaultValue: 'Zəhmət olmasa bütün sahələri doldurun.' }),
+        description: firstError.message,
         variant: 'destructive',
       });
       return;
     }
+
+    const payload = validation.data;
 
     try {
       toast({
