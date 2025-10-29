@@ -8,9 +8,9 @@ import { formatDistanceToNow } from "date-fns";
 interface PiStatus {
   deviceId: string;
   status: "healthy" | "diseased" | "mixed" | "noObjects";
-  confidence: number;
+  confidence: number | null;
   objectCount: number;
-  avgFps: number;
+  avgFps: number | null;
   lastFrameTs: number;
 }
 
@@ -99,7 +99,7 @@ const StatusIndicator = () => {
             {config.label}
           </Badge>
           <span className="text-sm text-foreground font-medium">
-            {status.confidence.toFixed(1)}%
+            {status.confidence?.toFixed(1) ?? 'N/A'}%
           </span>
         </div>
 
@@ -112,7 +112,7 @@ const StatusIndicator = () => {
           </div>
           <div>
             <span className="text-muted-foreground">FPS:</span>
-            <span className="ml-1 text-foreground font-medium">{status.avgFps.toFixed(1)}</span>
+            <span className="ml-1 text-foreground font-medium">{status.avgFps?.toFixed(1) ?? 'N/A'}</span>
           </div>
           <div>
             <span className="text-muted-foreground">
