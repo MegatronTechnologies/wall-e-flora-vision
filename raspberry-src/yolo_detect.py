@@ -14,9 +14,6 @@
     RASPBERRY_PI_DEVICE_ID  – идентификатор устройства (обязателен для отправки).
     RASPBERRY_PI_API_KEY    – Bearer токен Lovable Cloud. Без него отправка отключена.
     RASPBERRY_PI_ENDPOINT   – URL POST эндпоинта (по умолчанию Supabase функц. из README).
-    RASPBERRY_PI_USER_TOKEN – Токен пользователя для автоматической отправки (опционально).
-                              Если не установлен, автоматическая отправка отключена.
-                              Используйте Dashboard для ручной детекции.
 
 Дополнительные опции:
     YOLO_MODEL_PATH (default: "best_ncnn_model")
@@ -117,7 +114,6 @@ WINDOW_NAME = "YOLO Detection Results"
 DEVICE_ID = os.getenv("RASPBERRY_PI_DEVICE_ID")
 API_KEY = os.getenv("RASPBERRY_PI_API_KEY")
 SUPABASE_ANON_KEY = os.getenv("SUPABASE_ANON_KEY")
-USER_TOKEN = os.getenv("RASPBERRY_PI_USER_TOKEN")  # User auth token for automatic sending
 ENDPOINT = os.getenv(
     "RASPBERRY_PI_ENDPOINT",
     "https://wmzdgcumvdnqodryhmxs.supabase.co/functions/v1/submit-detection",
@@ -631,13 +627,7 @@ class DetectionService:
 
                 # Send detection to cloud (use original frame, not annotated)
                 if self._should_send():
-                    if USER_TOKEN:
-                        # Automatic sending enabled with user token
-                        self._send_detection(frame.copy(), status, confidence, count, fps_value, user_token=USER_TOKEN)
-                    else:
-                        # Automatic sending disabled - user token required
-                        logger.warning("Automatic detection sending skipped: RASPBERRY_PI_USER_TOKEN not set. Use Dashboard 'Detect' button for manual detection.")
-                        self.last_send_ts = time.time()  # Update timestamp to avoid spamming warnings
+                    self._send_detection(frame.copy(), status, confidence, count, fps_value)
 
             except RuntimeError as exc:
                 consecutive_errors += 1
@@ -688,7 +678,6 @@ class DetectionService:
         confidence: Optional[float],
         count: int,
         fps_value: float,
-        user_token: Optional[str] = None,
     ) -> None:
         lovable_enabled = bool(ENDPOINT and API_KEY and DEVICE_ID and SUPABASE_ANON_KEY)
         supabase_enabled = self.supabase_writer.is_enabled()
@@ -717,10 +706,8 @@ class DetectionService:
             },
         }
 
-        # Use user token if provided, otherwise use anon key
-        auth_token = user_token if user_token else SUPABASE_ANON_KEY
         headers = {
-            "Authorization": f"Bearer {auth_token}",
+            "Authorization": f"Bearer {SUPABASE_ANON_KEY}",
             "apikey": SUPABASE_ANON_KEY,
             "X-Raspberry-Pi-Key": API_KEY,
             "Content-Type": "application/json",
@@ -1011,19 +998,6 @@ def main() -> None:
     logger.info(f"Camera: {FRAME_WIDTH}x{FRAME_HEIGHT}@{FRAME_RATE}")
     logger.info(f"Send Interval: {SEND_INTERVAL}s")
     logger.info(f"HTTP Server: {STREAM_HOST}:{STREAM_PORT}")
-    logger.info("=" * 60)
-
-    # Log automatic sending status
-    if USER_TOKEN:
-        logger.info("✓ Automatic detection sending: ENABLED")
-        logger.info("  RASPBERRY_PI_USER_TOKEN is set")
-        logger.info(f"  Detections will be sent every {SEND_INTERVAL}s")
-    else:
-        logger.info("✗ Automatic detection sending: DISABLED")
-        logger.info("  RASPBERRY_PI_USER_TOKEN not set")
-        logger.info("  Use Dashboard 'Detect' button for manual detection")
-
-    logger.info("=" * 60)
 
     service.start()
     signal.signal(signal.SIGTERM, handle_signal)

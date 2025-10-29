@@ -231,35 +231,9 @@ const Dashboard = () => {
     } catch (error) {
       logger.error("Dashboard", "Detect request failed", error);
       isWaitingForDetectionRef.current = false;
-      
-      let errorTitle = t("common.error");
-      let errorDescription = t("dashboard.detectError", { defaultValue: "Connection error" });
-
-      if (error instanceof TypeError && error.message === "Failed to fetch") {
-        errorTitle = t("dashboard.errors.connectionTitle", { defaultValue: "Connection failed" });
-        errorDescription = t("dashboard.errors.connectionDesc", { 
-          defaultValue: "Cannot reach Raspberry Pi. Check if device is online and network connection is stable." 
-        });
-      } else if (error instanceof Error && error.message.includes("HTTP 401")) {
-        errorTitle = t("dashboard.errors.authTitle", { defaultValue: "Authentication error" });
-        errorDescription = t("dashboard.errors.authDesc", { 
-          defaultValue: "Session expired. Please refresh the page and login again." 
-        });
-      } else if (error instanceof Error && error.message.includes("HTTP 500")) {
-        errorTitle = t("dashboard.errors.serverTitle", { defaultValue: "Server error" });
-        errorDescription = t("dashboard.errors.serverDesc", { 
-          defaultValue: "Raspberry Pi encountered an error. Check device logs." 
-        });
-      } else if (error instanceof Error && error.message.includes("HTTP 404")) {
-        errorTitle = t("dashboard.errors.endpointTitle", { defaultValue: "Endpoint not found" });
-        errorDescription = t("dashboard.errors.endpointDesc", { 
-          defaultValue: "Detection service not available on Raspberry Pi." 
-        });
-      }
-
       toast({
-        title: errorTitle,
-        description: errorDescription,
+        title: t("common.error"),
+        description: t("dashboard.detectError", { defaultValue: "Connection error" }),
         variant: "destructive",
       });
     } finally {
