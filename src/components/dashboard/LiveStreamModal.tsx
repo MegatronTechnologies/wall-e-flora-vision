@@ -3,6 +3,8 @@ import { Button } from "@/components/ui/button";
 import { Loader2, RefreshCw } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useState, useEffect, useRef } from "react";
+import { logger } from "@/lib/logger";
+import { useToast } from "@/hooks/use-toast";
 
 interface LiveStreamModalProps {
   open: boolean;
@@ -14,6 +16,7 @@ interface LiveStreamModalProps {
 
 const LiveStreamModal = ({ open, onClose, onDetect, detecting, streamUrl }: LiveStreamModalProps) => {
   const { t } = useTranslation();
+  const { toast } = useToast();
   const [imageKey, setImageKey] = useState(Date.now());
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [streamError, setStreamError] = useState(false);
@@ -23,35 +26,58 @@ const LiveStreamModal = ({ open, onClose, onDetect, detecting, streamUrl }: Live
   // Reset state when modal opens
   useEffect(() => {
     if (open) {
+      logger.info("LiveStreamModal", "📹 Scan modal opened");
+      if (!streamUrl) {
+        logger.warn("LiveStreamModal", "⚠️ Stream URL not configured");
+      } else {
+        logger.debug("LiveStreamModal", `Stream URL: ${streamUrl}`);
+      }
       setStreamError(false);
       setUseMjpeg(true);
       setImageKey(Date.now());
     }
-  }, [open]);
+  }, [open, streamUrl]);
 
   const handleManualRefresh = () => {
+    logger.info("LiveStreamModal", "🔄 Manual refresh triggered");
     setIsRefreshing(true);
     setStreamError(false);
-    setUseMjpeg(true); // Try MJPEG again on manual refresh
+    setUseMjpeg(true);
     setImageKey(Date.now());
-    setTimeout(() => setIsRefreshing(false), 500);
+    logger.debug("LiveStreamModal", "Attempting to reconnect to MJPEG stream");
+    setTimeout(() => {
+      setIsRefreshing(false);
+      logger.debug("LiveStreamModal", "Refresh completed");
+    }, 500);
   };
 
   const handleStreamError = () => {
-    console.error('MJPEG stream error, falling back to snapshot mode');
+    logger.error("LiveStreamModal", "❌ MJPEG stream error, falling back to snapshot mode");
     setStreamError(true);
     setUseMjpeg(false);
+    
+    toast({
+      title: t("dashboard.stream.errorTitle", { defaultValue: "Stream Error" }),
+      description: t("dashboard.stream.errorDescription", { 
+        defaultValue: "Live stream unavailable. Switched to snapshot mode." 
+      }),
+      variant: "destructive",
+    });
   };
 
   // Auto-refresh for snapshot fallback mode (only when MJPEG fails)
   useEffect(() => {
     if (!open || !streamUrl || useMjpeg) return;
 
+    logger.debug("LiveStreamModal", "Starting snapshot auto-refresh (500ms interval)");
     const interval = setInterval(() => {
       setImageKey(Date.now());
     }, 500);
 
-    return () => clearInterval(interval);
+    return () => {
+      logger.debug("LiveStreamModal", "Stopping snapshot auto-refresh");
+      clearInterval(interval);
+    };
   }, [open, streamUrl, useMjpeg]);
 
   return (
