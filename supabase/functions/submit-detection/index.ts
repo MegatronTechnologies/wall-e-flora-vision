@@ -258,31 +258,50 @@ serve(async (req) => {
     if (authHeader && authHeader.startsWith("Bearer ")) {
       const token = authHeader.substring(7);
 
-      try {
-        // Create a client with anon key and user token to verify auth
-        const userSupabase = createClient(supabaseUrl, supabaseAnonKey, {
-          global: {
-            headers: {
-              Authorization: `Bearer ${token}`
-            }
-          },
-          auth: {
-            persistSession: false,
-            autoRefreshToken: false,
-          }
-        });
+      // Log token info for debugging (without exposing full token)
+      logWithId("Token received", {
+        tokenLength: token.length,
+        tokenPrefix: token.substring(0, 20) + "...",
+        hasJwtFormat: token.split('.').length === 3
+      });
 
-        // Verify token and get user
-        const { data: { user }, error: authError } = await userSupabase.auth.getUser();
-        if (!authError && user) {
+      try {
+        // ✅ Use Service Role client to verify token as parameter
+        const adminClient = createClient(supabaseUrl, supabaseServiceKey);
+        
+        // Pass token as parameter (not in global headers!)
+        const { data: { user }, error: authError } = await adminClient.auth.getUser(token);
+        
+        if (user && !authError) {
           userId = user.id;
-          logWithId("Authenticated user", { userId: user.id, email: user.email });
+          logWithId("✅ Authenticated user", { 
+            userId: user.id, 
+            email: user.email 
+          });
         } else {
-          logWithId("Auth verification failed", authError);
+          logWithId("❌ Auth verification failed", {
+            error: authError?.message,
+            code: authError?.code
+          });
         }
       } catch (authErr) {
-        logWithId("Error during auth verification", authErr);
+        logWithId("❌ Exception during auth verification", {
+          error: authErr instanceof Error ? authErr.message : String(authErr)
+        });
       }
+    }
+
+    // Check if user is authenticated
+    if (!userId) {
+      logWithId("⚠️ No authenticated user - authentication required");
+      return new Response(
+        JSON.stringify({ 
+          error: 'Authentication required',
+          details: 'Valid user token must be provided in Authorization header',
+          hint: 'Make sure you are logged in and token is not expired'
+        }),
+        { status: 401, headers: headersWithRequestId }
+      );
     }
 
     // Insert detection record
