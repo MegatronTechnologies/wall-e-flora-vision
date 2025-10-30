@@ -267,9 +267,13 @@ const SuperAdminPanel = () => {
           <AdminInfoAlerts authRequired={authRequired} edgeUnavailable={edgeUnavailable} />
 
           <Tabs defaultValue="users" className="w-full">
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="users">{t("admin.usersManagement")}</TabsTrigger>
-              <TabsTrigger value="database">{t("admin.databaseManagement")}</TabsTrigger>
+            <TabsList className="grid w-full grid-cols-2 mb-6">
+              <TabsTrigger value="users" className="text-base">
+                {t("admin.usersManagement")}
+              </TabsTrigger>
+              <TabsTrigger value="database" className="text-base">
+                {t("admin.databaseManagement")}
+              </TabsTrigger>
             </TabsList>
 
             <TabsContent value="users" className="mt-6 space-y-8">
