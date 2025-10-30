@@ -16,6 +16,8 @@ import AdminUsersTable from "@/components/superadmin/AdminUsersTable";
 import AdminUserFormDialog, { type FormState } from "@/components/superadmin/AdminUserFormDialog";
 import AdminDeleteDialog from "@/components/superadmin/AdminDeleteDialog";
 import AdminInfoAlerts from "@/components/superadmin/AdminInfoAlerts";
+import DatabaseManagement from "@/components/superadmin/DatabaseManagement";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { logger } from "@/lib/logger";
 import { z } from "zod";
 
@@ -262,33 +264,46 @@ const SuperAdminPanel = () => {
             </div>
           </motion.div>
 
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-            <AdminSummaryCards summary={summary} />
-          </motion.div>
-
           <AdminInfoAlerts authRequired={authRequired} edgeUnavailable={edgeUnavailable} />
 
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-            <AdminControls
-              searchTerm={searchTerm}
-              onSearchTermChange={setSearchTerm}
-              roleFilter={roleFilter}
-              onRoleFilterChange={setRoleFilter}
-              sortDirection={sortDirection}
-              onToggleSort={handleToggleSort}
-              onCreate={handleCreateOpen}
-            />
-          </motion.div>
+          <Tabs defaultValue="users" className="w-full">
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="users">{t("admin.usersManagement")}</TabsTrigger>
+              <TabsTrigger value="database">{t("admin.databaseManagement")}</TabsTrigger>
+            </TabsList>
 
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-            <AdminUsersTable
-              users={filteredUsers}
-              loading={loading}
-              onEdit={handleEditOpen}
-              onDelete={handleDeleteRequest}
-              deletingId={deletingId}
-            />
-          </motion.div>
+            <TabsContent value="users" className="mt-6 space-y-8">
+              <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
+                <AdminSummaryCards summary={summary} />
+              </motion.div>
+
+              <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
+                <AdminControls
+                  searchTerm={searchTerm}
+                  onSearchTermChange={setSearchTerm}
+                  roleFilter={roleFilter}
+                  onRoleFilterChange={setRoleFilter}
+                  sortDirection={sortDirection}
+                  onToggleSort={handleToggleSort}
+                  onCreate={handleCreateOpen}
+                />
+              </motion.div>
+
+              <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
+                <AdminUsersTable
+                  users={filteredUsers}
+                  loading={loading}
+                  onEdit={handleEditOpen}
+                  onDelete={handleDeleteRequest}
+                  deletingId={deletingId}
+                />
+              </motion.div>
+            </TabsContent>
+
+            <TabsContent value="database" className="mt-6">
+              <DatabaseManagement />
+            </TabsContent>
+          </Tabs>
         </div>
       </div>
 
