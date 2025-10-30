@@ -195,13 +195,16 @@ export const deleteStorageFile = async (fileName: string): Promise<void> => {
   logger.debug("AdminDataService", "Deleting storage file", fileName);
 
   try {
-    const { error } = await supabase.storage
+    const { data, error } = await supabase.storage
       .from('detection-images')
       .remove([fileName]);
 
-    if (error) throw error;
+    if (error) {
+      logger.error("AdminDataService", "Storage API error", error);
+      throw error;
+    }
     
-    logger.info("AdminDataService", "Storage file deleted", fileName);
+    logger.info("AdminDataService", "Storage file deleted successfully", { fileName, data });
   } catch (error) {
     logger.error("AdminDataService", "Failed to delete storage file", error);
     throw error;
@@ -210,16 +213,19 @@ export const deleteStorageFile = async (fileName: string): Promise<void> => {
 
 export const bulkDeleteStorageFiles = async (fileNames: string[]): Promise<void> => {
   await ensureAuthenticated();
-  logger.debug("AdminDataService", `Bulk deleting ${fileNames.length} storage files`);
+  logger.debug("AdminDataService", `Bulk deleting ${fileNames.length} storage files`, fileNames);
 
   try {
-    const { error } = await supabase.storage
+    const { data, error } = await supabase.storage
       .from('detection-images')
       .remove(fileNames);
 
-    if (error) throw error;
+    if (error) {
+      logger.error("AdminDataService", "Storage API bulk delete error", error);
+      throw error;
+    }
     
-    logger.info("AdminDataService", `Bulk deleted ${fileNames.length} storage files`);
+    logger.info("AdminDataService", `Bulk deleted ${fileNames.length} storage files successfully`, { count: fileNames.length, data });
   } catch (error) {
     logger.error("AdminDataService", "Failed to bulk delete storage files", error);
     throw error;
