@@ -14,6 +14,10 @@ const resources = {
       login: 'Daxil ol',
       signup: 'Qeydiyyat',
       logout: 'Çıxış',
+      nav: {
+        userPanel: 'İstifadəçi Paneli',
+        adminPanel: 'Admin Paneli',
+      },
       
       // Landing
       hero: {
@@ -236,6 +240,10 @@ const resources = {
       login: 'Login',
       signup: 'Sign Up',
       logout: 'Logout',
+      nav: {
+        userPanel: 'User Panel',
+        adminPanel: 'Admin Panel',
+      },
       
       // Landing
       hero: {

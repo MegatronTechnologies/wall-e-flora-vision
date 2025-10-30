@@ -55,6 +55,20 @@ const Navbar = () => {
           <LanguageSwitcher />
           {loading ? null : user ? (
             <>
+              {role === "superadmin" && (
+                <div className="hidden sm:flex items-center gap-2">
+                  <Link to="/dashboard">
+                    <Button variant="ghost" size="sm">
+                      {t("nav.userPanel")}
+                    </Button>
+                  </Link>
+                  <Link to="/admin">
+                    <Button variant="ghost" size="sm">
+                      {t("nav.adminPanel")}
+                    </Button>
+                  </Link>
+                </div>
+              )}
               <span className="hidden text-sm text-muted-foreground sm:block">
                 {user.email} {role === "superadmin" ? "• Superadmin" : ""}
               </span>
