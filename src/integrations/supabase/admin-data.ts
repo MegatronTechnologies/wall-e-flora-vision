@@ -143,22 +143,47 @@ export interface StorageFile {
   metadata: Record<string, any>;
 }
 
+const listFilesRecursively = async (path: string = ''): Promise<StorageFile[]> => {
+  const { data, error } = await supabase.storage
+    .from('detection-images')
+    .list(path, {
+      limit: 1000,
+      sortBy: { column: 'created_at', order: 'desc' }
+    });
+
+  if (error) throw error;
+  if (!data) return [];
+
+  const files: StorageFile[] = [];
+  
+  for (const item of data) {
+    const itemPath = path ? `${path}/${item.name}` : item.name;
+    
+    // If it's a folder (no metadata.size means it's a folder)
+    if (!item.metadata?.size && item.id === null) {
+      // Recursively get files from this folder
+      const subFiles = await listFilesRecursively(itemPath);
+      files.push(...subFiles);
+    } else {
+      // It's a file, add it with full path
+      files.push({
+        ...item,
+        name: itemPath
+      });
+    }
+  }
+  
+  return files;
+};
+
 export const fetchStorageFiles = async (): Promise<StorageFile[]> => {
   await ensureAuthenticated();
-  logger.debug("AdminDataService", "Fetching storage files");
+  logger.debug("AdminDataService", "Fetching storage files recursively");
 
   try {
-    const { data, error } = await supabase.storage
-      .from('detection-images')
-      .list('', {
-        limit: 1000,
-        sortBy: { column: 'created_at', order: 'desc' }
-      });
-
-    if (error) throw error;
-    
-    logger.info("AdminDataService", `Fetched ${data?.length ?? 0} storage files`);
-    return data || [];
+    const files = await listFilesRecursively();
+    logger.info("AdminDataService", `Fetched ${files.length} storage files`);
+    return files;
   } catch (error) {
     logger.error("AdminDataService", "Failed to fetch storage files", error);
     throw error;
