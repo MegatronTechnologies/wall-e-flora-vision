@@ -3,9 +3,15 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useTranslation } from "react-i18next";
 import DetectionsTable from "./DetectionsTable";
 import DetectionImagesTable from "./DetectionImagesTable";
-import { fetchAllDetections, fetchAllDetectionImages } from "@/integrations/supabase/admin-data";
+import StorageFilesTable from "./StorageFilesTable";
+import { 
+  fetchAllDetections, 
+  fetchAllDetectionImages, 
+  fetchStorageFiles,
+  type DetectionImage,
+  type StorageFile 
+} from "@/integrations/supabase/admin-data";
 import type { Detection } from "@/types/detection";
-import type { DetectionImage } from "@/integrations/supabase/admin-data";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { RefreshCw } from "lucide-react";
@@ -14,8 +20,10 @@ const DatabaseManagement = () => {
   const { t } = useTranslation();
   const [detections, setDetections] = useState<Detection[]>([]);
   const [images, setImages] = useState<DetectionImage[]>([]);
+  const [files, setFiles] = useState<StorageFile[]>([]);
   const [loadingDetections, setLoadingDetections] = useState(true);
   const [loadingImages, setLoadingImages] = useState(true);
+  const [loadingFiles, setLoadingFiles] = useState(true);
 
   const loadDetections = async () => {
     setLoadingDetections(true);
@@ -43,9 +51,23 @@ const DatabaseManagement = () => {
     }
   };
 
+  const loadFiles = async () => {
+    setLoadingFiles(true);
+    try {
+      const data = await fetchStorageFiles();
+      setFiles(data);
+    } catch (error) {
+      console.error("Load storage files error:", error);
+      toast.error(t("admin.loadError"));
+    } finally {
+      setLoadingFiles(false);
+    }
+  };
+
   useEffect(() => {
     loadDetections();
     loadImages();
+    loadFiles();
   }, []);
 
   return (
@@ -60,6 +82,7 @@ const DatabaseManagement = () => {
           onClick={() => {
             loadDetections();
             loadImages();
+            loadFiles();
           }}
         >
           <RefreshCw className="mr-2 h-4 w-4" />
@@ -68,12 +91,15 @@ const DatabaseManagement = () => {
       </div>
 
       <Tabs defaultValue="detections" className="w-full">
-        <TabsList className="grid w-full grid-cols-2">
+        <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="detections">
             {t("admin.detections")} ({detections.length})
           </TabsTrigger>
           <TabsTrigger value="images">
             {t("admin.detectionImages")} ({images.length})
+          </TabsTrigger>
+          <TabsTrigger value="storage">
+            {t("admin.storageFiles")} ({files.length})
           </TabsTrigger>
         </TabsList>
 
@@ -90,6 +116,14 @@ const DatabaseManagement = () => {
             images={images}
             loading={loadingImages}
             onRefresh={loadImages}
+          />
+        </TabsContent>
+
+        <TabsContent value="storage" className="mt-6">
+          <StorageFilesTable
+            files={files}
+            loading={loadingFiles}
+            onRefresh={loadFiles}
           />
         </TabsContent>
       </Tabs>

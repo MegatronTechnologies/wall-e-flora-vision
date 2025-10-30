@@ -131,3 +131,72 @@ export const bulkDeleteDetectionImages = async (ids: string[]): Promise<void> =>
 
   logger.info("AdminDataService", `Bulk deleted ${ids.length} detection images`);
 };
+
+// ===== STORAGE FILES =====
+
+export interface StorageFile {
+  name: string;
+  id: string;
+  updated_at: string;
+  created_at: string;
+  last_accessed_at: string;
+  metadata: Record<string, any>;
+}
+
+export const fetchStorageFiles = async (): Promise<StorageFile[]> => {
+  await ensureAuthenticated();
+  logger.debug("AdminDataService", "Fetching storage files");
+
+  try {
+    const { data, error } = await supabase.storage
+      .from('detection-images')
+      .list('', {
+        limit: 1000,
+        sortBy: { column: 'created_at', order: 'desc' }
+      });
+
+    if (error) throw error;
+    
+    logger.info("AdminDataService", `Fetched ${data?.length ?? 0} storage files`);
+    return data || [];
+  } catch (error) {
+    logger.error("AdminDataService", "Failed to fetch storage files", error);
+    throw error;
+  }
+};
+
+export const deleteStorageFile = async (fileName: string): Promise<void> => {
+  await ensureAuthenticated();
+  logger.debug("AdminDataService", "Deleting storage file", fileName);
+
+  try {
+    const { error } = await supabase.storage
+      .from('detection-images')
+      .remove([fileName]);
+
+    if (error) throw error;
+    
+    logger.info("AdminDataService", "Storage file deleted", fileName);
+  } catch (error) {
+    logger.error("AdminDataService", "Failed to delete storage file", error);
+    throw error;
+  }
+};
+
+export const bulkDeleteStorageFiles = async (fileNames: string[]): Promise<void> => {
+  await ensureAuthenticated();
+  logger.debug("AdminDataService", `Bulk deleting ${fileNames.length} storage files`);
+
+  try {
+    const { error } = await supabase.storage
+      .from('detection-images')
+      .remove(fileNames);
+
+    if (error) throw error;
+    
+    logger.info("AdminDataService", `Bulk deleted ${fileNames.length} storage files`);
+  } catch (error) {
+    logger.error("AdminDataService", "Failed to bulk delete storage files", error);
+    throw error;
+  }
+};
