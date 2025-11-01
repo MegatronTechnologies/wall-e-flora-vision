@@ -6,6 +6,9 @@ export RASPBERRY_PI_DEVICE_ID="raspi-001"
 export RASPBERRY_PI_API_KEY="9f2a4c8e1b3d46e7a29b51f8c6d0e2ab"
 export RASPBERRY_PI_ENDPOINT="https://wmzdgcumvdnqodryhmxs.supabase.co/functions/v1/submit-detection"
 
+# Automatic detection sending (0=disabled, 1=enabled)
+export RS_ENABLE_AUTO_DETECTION="1"
+
 # Supabase helper istifadə etmədiyiniz üçün bu dəyişənlər söndürülür.
 unset SUPABASE_URL SUPABASE_SERVICE_ROLE_KEY SUPABASE_TABLE SUPABASE_STORAGE_BUCKET \
   SUPABASE_STORAGE_PREFIX SUPABASE_PENDING_PATH

@@ -21,6 +21,7 @@ FRAME_RATE = int(os.getenv("RS_FRAME_RATE", "15"))
 # Detection & Sending Configuration
 SEND_INTERVAL = float(os.getenv("RS_SEND_INTERVAL", "15"))
 CONF_THRESHOLD = float(os.getenv("RS_CONF_THRESHOLD", "0.5"))
+ENABLE_AUTO_DETECTION = os.getenv("RS_ENABLE_AUTO_DETECTION", "0").lower() in {"1", "true", "yes"}
 
 # HTTP Server Configuration
 STREAM_HOST = os.getenv("RS_STREAM_HOST", "0.0.0.0")

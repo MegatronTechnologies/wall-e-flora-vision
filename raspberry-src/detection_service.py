@@ -28,6 +28,7 @@ except ImportError as exc:
 from config import (
     API_KEY,
     DEVICE_ID,
+    ENABLE_AUTO_DETECTION,
     ENABLE_DISPLAY,
     ENDPOINT,
     FRAME_HEIGHT,
@@ -273,9 +274,9 @@ class DetectionService:
                     elif key == ord("f") or key == ord("F"):  # Save crops
                         save_frames_from_detections(frame, boxes, self.labels)
 
-                # Automatic detection sending disabled - use Dashboard 'Detect' button instead
-                # if self._should_send():
-                #     self._send_detection(frame.copy(), status, confidence, count, fps_value)
+                # Automatic detection sending (controlled by RS_ENABLE_AUTO_DETECTION env var)
+                if ENABLE_AUTO_DETECTION and self._should_send():
+                    self._send_detection(frame.copy(), status, confidence, count, fps_value)
 
             except RuntimeError as exc:
                 consecutive_errors += 1

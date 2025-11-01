@@ -19,6 +19,7 @@
     YOLO_MODEL_PATH (default: "best_ncnn_model")
     RS_FRAME_WIDTH / RS_FRAME_HEIGHT / RS_FRAME_RATE
     RS_SEND_INTERVAL  (секунды между отправками, default: 15)
+    RS_ENABLE_AUTO_DETECTION (default: "0") - Включить автоматическую отправку детекций
     RS_STREAM_HOST    (default: "0.0.0.0")
     RS_STREAM_PORT    (default: 8080)
     RS_ENABLE_DISPLAY (default: "0") - Включить OpenCV окно и клавиатурные команды (Q/P/S/F)
@@ -32,11 +33,13 @@ import sys
 
 from config import (
     DEVICE_ID,
+    ENABLE_AUTO_DETECTION,
     ENABLE_DISPLAY,
     FRAME_HEIGHT,
     FRAME_RATE,
     FRAME_WIDTH,
     MODEL_PATH,
+    SEND_INTERVAL,
     STREAM_HOST,
     STREAM_PORT,
     WINDOW_NAME,
@@ -63,8 +66,12 @@ def main() -> None:
     logger.info(f"Camera: {FRAME_WIDTH}x{FRAME_HEIGHT}@{FRAME_RATE}")
     logger.info(f"HTTP Server: {STREAM_HOST}:{STREAM_PORT}")
     logger.info("=" * 60)
-    logger.info("⚠️  Automatic detection sending: DISABLED")
-    logger.info("   Use Dashboard 'Detect' button for manual detection")
+    if ENABLE_AUTO_DETECTION:
+        logger.info("✅ Automatic detection sending: ENABLED")
+        logger.info(f"   Sending every {SEND_INTERVAL} seconds")
+    else:
+        logger.info("⚠️  Automatic detection sending: DISABLED")
+        logger.info("   Use Dashboard 'Detect' button for manual detection")
     logger.info("=" * 60)
 
     # Get service instance from flask_app

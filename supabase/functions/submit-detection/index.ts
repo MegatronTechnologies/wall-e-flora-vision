@@ -297,17 +297,26 @@ serve(async (req) => {
       }
     }
 
-    // Check if user is authenticated
-    if (!userId) {
-      logWithId("⚠️ No authenticated user - authentication required");
+    // Check authentication:
+    // - If Raspberry Pi API key is valid → allow without user (automated detection)
+    // - If no API key → require user authentication (manual detection from dashboard)
+    if (!userId && !apiKeyValid) {
+      logWithId("⚠️ No authenticated user and invalid API key");
       return new Response(
-        JSON.stringify({ 
+        JSON.stringify({
           error: 'Authentication required',
-          details: 'Valid user token must be provided in Authorization header',
-          hint: 'Make sure you are logged in and token is not expired'
+          details: 'Either valid user token or Raspberry Pi API key must be provided',
+          hint: 'Make sure you are logged in or using correct API key'
         }),
         { status: 401, headers: headersWithRequestId }
       );
+    }
+
+    // Log detection source
+    if (userId) {
+      logWithId(`📱 Manual detection from user ${userId}`);
+    } else {
+      logWithId(`🤖 Automated detection from Raspberry Pi (no user)`);
     }
 
     // Insert detection record
@@ -319,7 +328,7 @@ serve(async (req) => {
         status,
         confidence: confidence || null,
         metadata: metadata || {},
-        user_id: userId
+        user_id: userId || null  // NULL for automated detections
       })
       .select()
       .single();

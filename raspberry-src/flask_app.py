@@ -17,9 +17,10 @@ service = DetectionService()
 # Create Flask application
 app = Flask(__name__)
 
-# CORS configuration for Lovable web app
+# CORS configuration for web apps
 ALLOWED_ORIGINS = [
     "https://6f57ff6c-8105-4412-aa58-20836cc6cf0a.lovableproject.com",
+    "https://megtech.online",  # Production domain
     "http://localhost:5173",  # Local development
     "http://localhost:3000",
 ]
@@ -32,13 +33,21 @@ def add_cors_headers(response):
     if origin in ALLOWED_ORIGINS or (
         origin
         and origin.startswith("https://")
-        and "lovableproject.com" in origin
+        and ("lovableproject.com" in origin or "megtech.online" in origin)
     ):
         response.headers["Access-Control-Allow-Origin"] = origin
         response.headers["Access-Control-Allow-Methods"] = "GET, POST, OPTIONS"
         response.headers["Access-Control-Allow-Headers"] = "Content-Type, Authorization"
         response.headers["Access-Control-Max-Age"] = "3600"
     return response
+
+
+@app.route("/detect", methods=["OPTIONS"])
+@app.route("/status", methods=["OPTIONS"])
+@app.route("/snapshot", methods=["OPTIONS"])
+def handle_preflight():
+    """Handle CORS preflight requests."""
+    return "", 204
 
 
 @app.route("/snapshot")
