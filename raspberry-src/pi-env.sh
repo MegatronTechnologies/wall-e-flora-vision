@@ -7,7 +7,7 @@ export RASPBERRY_PI_API_KEY="CVEh86PuqcoXlS00XKrrc8h4HdlYI-4xFLH4Ztygc9g"
 export RASPBERRY_PI_ENDPOINT="https://wmzdgcumvdnqodryhmxs.supabase.co/functions/v1/submit-detection"
 
 # Automatic detection sending (0=disabled, 1=enabled)
-export RS_ENABLE_AUTO_DETECTION="1"
+export RS_ENABLE_AUTO_DETECTION="0"
 
 # Supabase helper istifadə etmədiyiniz üçün bu dəyişənlər söndürülür.
 unset SUPABASE_URL SUPABASE_SERVICE_ROLE_KEY SUPABASE_TABLE SUPABASE_STORAGE_BUCKET \
