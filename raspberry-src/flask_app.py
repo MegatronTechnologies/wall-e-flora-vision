@@ -5,10 +5,8 @@ Provides HTTP endpoints for snapshot, status, detection triggering, and MJPEG st
 """
 import time
 
-import cv2
 from flask import Flask, Response, jsonify, request
 
-from config import JPEG_QUALITY
 from detection_service import DetectionService
 
 # Initialize detection service
@@ -83,27 +81,22 @@ def detect():
 
 @app.route("/stream")
 def stream():
-    """MJPEG streaming endpoint for real-time video (for megtech.online subdomain)."""
+    """MJPEG streaming endpoint for real-time video (optimized with pre-encoded JPEG cache)."""
 
     def generate():
         while True:
-            frame = service.get_latest_frame_copy()
-            if frame is None:
-                time.sleep(0.1)
-                continue
-
-            success, buffer = cv2.imencode(
-                ".jpg", frame, [int(cv2.IMWRITE_JPEG_QUALITY), JPEG_QUALITY]
-            )
-            if not success:
+            # Use cached JPEG buffer (pre-encoded in detection loop)
+            jpeg_bytes = service.get_cached_jpeg_stream()
+            if jpeg_bytes is None:
                 time.sleep(0.1)
                 continue
 
             yield (
                 b"--frame\r\n"
-                b"Content-Type: image/jpeg\r\n\r\n" + buffer.tobytes() + b"\r\n"
+                b"Content-Type: image/jpeg\r\n\r\n" + jpeg_bytes + b"\r\n"
             )
-            time.sleep(0.1)
+            # No artificial delay - frames sent as fast as available
+            # No JPEG encoding overhead - using pre-encoded buffer
 
     return Response(generate(), mimetype="multipart/x-mixed-replace; boundary=frame")
 

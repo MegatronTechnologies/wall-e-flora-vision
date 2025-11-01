@@ -9,14 +9,14 @@ from typing import Dict
 import cv2
 import numpy as np
 
-from config import BBOX_COLORS, CONF_THRESHOLD, JPEG_QUALITY, STREAMSCAN_DIR, STREAMFRAME_DIR
+from config import BBOX_COLORS, CONF_THRESHOLD, JPEG_QUALITY_SNAPSHOT, STREAMSCAN_DIR, STREAMFRAME_DIR
 from utils import logger, safe_bbox_coords, timestamp_str
 
 
 def encode_frame_to_base64(frame: np.ndarray, filename: str) -> Dict[str, str]:
     """Encode frame to base64 JPEG string."""
     success, buffer = cv2.imencode(
-        ".jpg", frame, [int(cv2.IMWRITE_JPEG_QUALITY), JPEG_QUALITY]
+        ".jpg", frame, [int(cv2.IMWRITE_JPEG_QUALITY), JPEG_QUALITY_SNAPSHOT]
     )
     if not success:
         raise RuntimeError("Не удалось закодировать кадр в JPEG.")

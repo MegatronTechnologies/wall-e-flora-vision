@@ -28,7 +28,9 @@ STREAM_HOST = os.getenv("RS_STREAM_HOST", "0.0.0.0")
 STREAM_PORT = int(os.getenv("RS_STREAM_PORT", "8080"))
 
 # Image Quality Configuration
-JPEG_QUALITY = int(os.getenv("RS_JPEG_QUALITY", "90"))
+JPEG_QUALITY = int(os.getenv("RS_JPEG_QUALITY", "90"))  # Legacy, kept for compatibility
+JPEG_QUALITY_STREAM = int(os.getenv("RS_JPEG_QUALITY_STREAM", "70"))  # For MJPEG streaming
+JPEG_QUALITY_SNAPSHOT = int(os.getenv("RS_JPEG_QUALITY_SNAPSHOT", "90"))  # For snapshots and detections
 
 # Display Configuration
 ENABLE_DISPLAY = os.getenv("RS_ENABLE_DISPLAY", "0").lower() in {"1", "true", "yes"}

@@ -34,7 +34,8 @@ from config import (
     FRAME_HEIGHT,
     FRAME_RATE,
     FRAME_WIDTH,
-    JPEG_QUALITY,
+    JPEG_QUALITY_SNAPSHOT,
+    JPEG_QUALITY_STREAM,
     MODEL_PATH,
     SEND_INTERVAL,
     SUPABASE_ANON_KEY,
@@ -52,6 +53,7 @@ class SharedState:
     """Shared state between detection thread and Flask HTTP server."""
 
     latest_frame: Optional[np.ndarray] = None
+    latest_jpeg_buffer: Optional[bytes] = None  # Pre-encoded JPEG for streaming
     latest_timestamp: float = 0.0
     status: str = "noObjects"
     confidence: Optional[float] = None
@@ -226,9 +228,16 @@ class DetectionService:
                     2,
                 )
 
-                # Update shared state with display frame (for streaming)
+                # Pre-encode JPEG for streaming (encode once, reuse for all clients)
+                success, jpeg_buffer = cv2.imencode(
+                    ".jpg", display_frame, [int(cv2.IMWRITE_JPEG_QUALITY), JPEG_QUALITY_STREAM]
+                )
+                jpeg_bytes = jpeg_buffer.tobytes() if success else None
+
+                # Update shared state with display frame and cached JPEG (for streaming)
                 with self.lock:
                     self.state.latest_frame = display_frame.copy()
+                    self.state.latest_jpeg_buffer = jpeg_bytes
                     self.state.latest_timestamp = time.time()
                     self.state.status = status
                     self.state.confidence = confidence
@@ -436,16 +445,24 @@ class DetectionService:
         if frame is None:
             return None
         success, buffer = cv2.imencode(
-            ".jpg", frame, [int(cv2.IMWRITE_JPEG_QUALITY), JPEG_QUALITY]
+            ".jpg", frame, [int(cv2.IMWRITE_JPEG_QUALITY), JPEG_QUALITY_SNAPSHOT]
         )
         return buffer.tobytes() if success else None
 
     def get_latest_frame_copy(self) -> Optional[np.ndarray]:
-        """Get a copy of the latest frame (for MJPEG streaming)."""
+        """Get a copy of the latest frame (for MJPEG streaming).
+
+        DEPRECATED: Use get_cached_jpeg_stream() instead for better performance.
+        """
         with self.lock:
             return (
                 None if self.state.latest_frame is None else self.state.latest_frame.copy()
             )
+
+    def get_cached_jpeg_stream(self) -> Optional[bytes]:
+        """Get pre-encoded JPEG buffer for streaming (optimized - no encoding overhead)."""
+        with self.lock:
+            return self.state.latest_jpeg_buffer
 
     def get_status(self) -> Dict[str, object]:
         """Get current detection status for /status endpoint."""

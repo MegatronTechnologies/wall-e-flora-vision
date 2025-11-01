@@ -69,10 +69,10 @@ const LiveStreamModal = ({ open, onClose, onDetect, detecting, streamUrl }: Live
   useEffect(() => {
     if (!open || !streamUrl || useMjpeg) return;
 
-    logger.debug("LiveStreamModal", "Starting snapshot auto-refresh (500ms interval)");
+    logger.debug("LiveStreamModal", "Starting snapshot auto-refresh (100ms interval)");
     const interval = setInterval(() => {
       setImageKey(Date.now());
-    }, 500);
+    }, 100);
 
     return () => {
       logger.debug("LiveStreamModal", "Stopping snapshot auto-refresh");
@@ -139,7 +139,7 @@ const LiveStreamModal = ({ open, onClose, onDetect, detecting, streamUrl }: Live
       <p className="mt-4 text-sm text-muted-foreground">
         {useMjpeg
           ? t("dashboard.streamNoteMjpeg", { defaultValue: "Live MJPEG stream. Click refresh to reconnect if needed." })
-          : t("dashboard.streamNote", { defaultValue: "Snapshot mode - updates every 500ms. Click refresh for immediate update." })
+          : t("dashboard.streamNote", { defaultValue: "Snapshot mode - updates every 100ms. Click refresh for immediate update." })
         }
       </p>
     </Modal>
