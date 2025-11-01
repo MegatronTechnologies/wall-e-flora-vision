@@ -160,6 +160,9 @@ serve(async (req) => {
       );
     }
 
+    // API key is valid if we reached here
+    const apiKeyValid = true;
+
     // Parse request body
     let payloadJson: unknown;
     try {
