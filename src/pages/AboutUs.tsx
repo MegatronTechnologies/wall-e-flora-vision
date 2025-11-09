@@ -55,10 +55,10 @@ const AboutUs = () => {
                   <h2 className="mb-6 text-4xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
                     {t("aboutUs.team.title")}
                   </h2>
-                  <p className="text-lg leading-relaxed text-foreground/90 mb-4">
+                  <p className="text-lg leading-relaxed text-gray-900 dark:text-foreground mb-4">
                     {t("aboutUs.team.description")}
                   </p>
-                  <p className="text-lg leading-relaxed text-foreground/90">
+                  <p className="text-lg leading-relaxed text-gray-900 dark:text-foreground">
                     {t("aboutUs.team.mission")}
                   </p>
                 </div>
