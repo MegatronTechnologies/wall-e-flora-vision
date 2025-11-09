@@ -37,24 +37,28 @@ const AboutUs = () => {
           transition={{ delay: 0.1 }}
           className="mb-16"
         >
-          <Card className="overflow-hidden border-primary/20">
-            <CardContent className="p-8">
-              <div className="flex flex-col items-center gap-6 md:flex-row md:gap-8">
-                <div className="flex-shrink-0">
+          <Card className="overflow-hidden bg-white dark:bg-card border-2 shadow-lg hover:shadow-xl transition-shadow duration-300">
+            <CardContent className="p-8 md:p-12">
+              <div className="flex flex-col items-center gap-8 md:flex-row md:gap-12">
+                <motion.div 
+                  className="flex-shrink-0"
+                  whileHover={{ scale: 1.05 }}
+                  transition={{ duration: 0.3 }}
+                >
                   <img
                     src={megtechLogo}
                     alt="MegTech Logo"
-                    className="h-48 w-48 object-contain"
+                    className="h-56 w-56 object-contain drop-shadow-lg"
                   />
-                </div>
+                </motion.div>
                 <div className="flex-1 text-center md:text-left">
-                  <h2 className="mb-4 text-3xl font-bold text-primary">
+                  <h2 className="mb-6 text-4xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
                     {t("aboutUs.team.title")}
                   </h2>
-                  <p className="text-lg leading-relaxed text-foreground">
+                  <p className="text-lg leading-relaxed text-foreground/90 mb-4">
                     {t("aboutUs.team.description")}
                   </p>
-                  <p className="mt-4 text-lg leading-relaxed text-foreground">
+                  <p className="text-lg leading-relaxed text-foreground/90">
                     {t("aboutUs.team.mission")}
                   </p>
                 </div>
