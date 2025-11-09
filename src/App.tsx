@@ -8,6 +8,7 @@ import Landing from "./pages/Landing";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import SuperAdminPanel from "./pages/SuperAdminPanel";
+import AboutUs from "./pages/AboutUs";
 import NotFound from "./pages/NotFound";
 import "./i18n/config";
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -23,6 +24,7 @@ const App = () => (
         <BrowserRouter>
           <Routes>
             <Route path="/" element={<Landing />} />
+            <Route path="/about" element={<AboutUs />} />
             <Route path="/login" element={<Login />} />
             <Route
               path="/dashboard"

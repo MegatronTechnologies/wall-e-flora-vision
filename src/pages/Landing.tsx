@@ -247,44 +247,6 @@ const Landing = () => {
         </div>
       </section>
 
-      {/* About Section */}
-      <section id="about" className="py-20 px-4 bg-card/50">
-        <div className="container mx-auto">
-          <motion.div
-            initial={{ opacity: 0 }}
-            whileInView={{ opacity: 1 }}
-            viewport={{ once: true }}
-            className="max-w-4xl mx-auto"
-          >
-            <div className="flex items-center gap-3 mb-6 justify-center">
-              <Users className="h-8 w-8 text-primary" />
-              <h2 className="text-4xl font-bold">{t('about.title')}</h2>
-            </div>
-            
-            <div className="space-y-6 text-left max-w-3xl mx-auto">
-              <p className="text-lg text-muted-foreground leading-relaxed text-center">
-                {localized.intro}
-              </p>
-
-              <p className="text-center font-medium text-primary">
-                {localized.competition}
-              </p>
-
-              {localized.sections.map((section) => (
-                <div key={section.title} className="space-y-2">
-                  <h3 className="text-2xl font-semibold text-center md:text-left">{section.title}</h3>
-                  <ul className="list-disc pl-6 space-y-1 text-muted-foreground">
-                    {section.items.map((item) => (
-                      <li key={item}>{item}</li>
-                    ))}
-                  </ul>
-                </div>
-              ))}
-            </div>
-          </motion.div>
-        </div>
-      </section>
-
       {/* Contact Section */}
       <section id="contact" className="py-20 px-4">
         <div className="container mx-auto">

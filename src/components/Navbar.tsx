@@ -52,6 +52,11 @@ const Navbar = () => {
         </Link>
 
         <div className="flex items-center gap-4">
+          <Link to="/about">
+            <Button variant="ghost" size="sm" className="hover:text-primary">
+              {t("nav.aboutUs")}
+            </Button>
+          </Link>
           <LanguageSwitcher />
           {loading ? null : user ? (
             <>

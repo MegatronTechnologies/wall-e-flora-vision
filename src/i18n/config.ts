@@ -17,6 +17,7 @@ const resources = {
       nav: {
         userPanel: 'İstifadəçi Paneli',
         adminPanel: 'Admin Paneli',
+        aboutUs: 'Haqqımızda',
       },
       
       // Landing
@@ -226,6 +227,36 @@ const resources = {
         verifyEmail: 'Lütfən emailinizə göndərilən təsdiq linkinə baxın.',
         passwordMismatch: 'Parollar uyğun gəlmir.',
       },
+      
+      // About Us
+      aboutUs: {
+        title: 'Haqqımızda',
+        subtitle: 'MegTech komandası',
+        team: {
+          title: 'MegTech Komandası',
+          description: 'MegTech komandası, 2022–2025-ci illər ərzində müxtəlif innovativ ideyalarla bir çox yerli və beynəlxalq müsabiqələrdə uğurla iştirak etmişdir. Bunlara Respublika Robot Olimpiadası (WRO Azerbaijan), STEAM Azərbaycan Festivalı, WRC Azerbaijan və digər texnologiya yönümlü tədbirlər daxildir. Komandamız hər müsabiqədə texniki biliklərini, yaradıcı düşüncə tərzini və komanda işini inkişaf etdirərək daha peşəkar nəticələr əldə etmişdir.',
+          mission: 'MegTech-in əsas məqsədi özümüzü davamlı şəkildə inkişaf etdirmək, praktiki təcrübə qazanmaq və cəmiyyət üçün real dəyər yaradan innovativ layihələr həyata keçirməkdir. Biz texnologiyanın gücünə inanırıq və gələcəkdə də həm milli, həm də beynəlxalq səviyyədə layihələrdə iştirak etməyi hədəfləyirik. Komandamız yaradıcı düşüncəni, problem həll etmə bacarığını və yüksək motivasiyanı prioritet tutur.',
+        },
+        nihat: {
+          name: 'Nihat Muradlı',
+          role: 'Biznes Meneceri & Full-Stack Proqramçı',
+          intro: 'Nihat Muradlı, 16 yaşında, Avropa Azərbaycan Məktəbinin XI sinif şagirdidir. O, MegTech komandasının biznes meneceri və full-stack proqramçısı kimi fəaliyyət göstərir. Texnologiyaya olan marağı və öyrənməyə açıq olması sayəsində komandanın texniki və iş proseslərinə aktiv şəkildə töhfə verir.',
+          technical: 'Nihat, full-stack development bacarıqlarından istifadə edərək layihənin vebsaytının hazırlanması, funksionallığın qurulması və interfeysin optimallaşdırılması ilə məşğuldur.',
+          business: 'Biznes meneceri kimi isə o, biznes planının yazılması, SWOT analizinin hazırlanması, maliyyələşdirmə sənədlərinin yığılması və layihə ilə bağlı lazım olan məlumatların sistemləşdirilməsi kimi işləri yerinə yetirir.',
+          goal: 'O, komandanın işinə dəstək göstərməyi, yeni bacarıqlar qazanmağı və texnologiya sahəsində daha çox təcrübə toplamağı hədəfləyir. Nihat MegTech-də öyrənən, inkişaf edən və komandanın ümumi işinə dəyər qatmağa çalışan bir üzv kimi fəaliyyət göstərir.',
+        },
+        aydin: {
+          name: 'Aydın Sulxayev',
+          role: '3D Texnologiyalar Mütəxəssisi & Avadanlıq Mühəndisi',
+          intro: 'Aydın Sulxayev, 16 yaşında, Zaqatala şəhərində yaşayır və N.Hüseynov adına 2 saylı tam orta məktəbin XI sinif şagirdidir. O, MegTech komandasının 3D texnologiyaları üzrə mütəxəssisi və avadanlıq mühəndisi kimi fəaliyyət göstərir. 3D texnologiyalara və mühəndisliyə olan güclü marağı sayəsində o, komandanın texniki layihələrində fəal rol oynayır.',
+          technical: 'Aydın, 3D modelləmə və çap, elektronika, robotika və sistemlərin inteqrasiyası sahəsində bacarıqlara malikdir. O, fiziki prototiplərin yaradılması, dizaynın optimallaşdırılması və sistemlərin mexaniki hissəsinin işlənib hazırlanması üçün məsuliyyət daşıyır. Komandada o, təsəvvürü real məhsula çevirən əsas üzvlərdən biridir.',
+          innovation: 'Öz rolunda Aydın yaradıcı düşüncədən və praktiki bacarıqlardan istifadə edərək müasir texnologiyaları tətbiq edir və komandanın layihələrinin texniki keyfiyyətini artırır.',
+          goal: 'O, MegTech-də texniki bilik və təcrübəsini inkişaf etdirməyi, yeni texnologiyaları öyrənməyi və innovativ həllər yaratmağa töhfə verməyi hədəfləyir.',
+        },
+        contact: {
+          title: 'Əlaqə',
+        },
+      },
     },
   },
   eng: {
@@ -243,6 +274,7 @@ const resources = {
       nav: {
         userPanel: 'User Panel',
         adminPanel: 'Admin Panel',
+        aboutUs: 'About Us',
       },
       
       // Landing
@@ -430,6 +462,41 @@ const resources = {
         edgeFunctionUnavailable: 'Unable to reach the edge function. Deploy `manage-users` on Supabase and ensure network access.',
         edgeFunctionUnavailableTitle: 'Edge function unreachable',
         edgeFunctionHelp: 'Deploy the `manage-users` function via Supabase CLI and ensure your `VITE_SUPABASE_URL` is accessible from this environment.',
+        storageFiles: 'Storage Files',
+        fileName: 'File Name',
+        fileSize: 'File Size',
+        preview: 'Preview',
+        noFiles: 'No files found',
+      },
+      
+      // About Us
+      aboutUs: {
+        title: 'About Us',
+        subtitle: 'MegTech Team',
+        team: {
+          title: 'MegTech Team',
+          description: 'MegTech is a student-led team that has actively participated in various innovative competitions between 2022 and 2025. These include the World Robot Olympiad (WRO Azerbaijan), the STEAM Azerbaijan Festival, WRC Azerbaijan, and several other technology-focused events. Throughout these competitions, our team has strengthened its technical skills, creativity, and teamwork, achieving increasingly professional results.',
+          mission: 'Our mission is to continuously grow, gain hands-on experience, and develop innovative projects that bring real value to society. We believe in the power of technology and aim to take part in even more national and international competitions in the future. MegTech prioritizes creative thinking, problem-solving, and high motivation in every project we undertake.',
+        },
+        nihat: {
+          name: 'Nihat Muradlı',
+          role: 'Business Manager & Full-Stack Developer',
+          intro: 'Nihat Muradlı, age 16, is an 11th-grade student at the European Azerbaijan School and works as MegTech\'s business manager and full-stack developer. With a strong interest in technology and a willingness to learn, he actively supports both the technical and organizational aspects of the team\'s work.',
+          technical: 'As a full-stack developer, Nihat contributes to the planning and development of the team\'s website, focusing on building functionality and improving the user interface.',
+          business: 'In his business manager role, he works on tasks such as preparing the business plan, creating the SWOT analysis, organizing funding-related documents, and structuring key project information.',
+          goal: 'His goal is to gain more experience, expand his technical skills, and contribute to the team\'s projects in a meaningful way. Nihat is a developing member of MegTech who continuously learns and adds value to the team\'s overall workflow.',
+        },
+        aydin: {
+          name: 'Aydın Sulxayev',
+          role: '3D Technology Specialist & Hardware Engineer',
+          intro: 'Aydın Sulxayev, age 16, is an 11th-grade student at N. Huseynov Secondary School No. 2 in Zagatala. He serves as the 3D technology specialist and hardware engineer for MegTech. His strong interest in 3D technology and engineering allows him to play an active role in the team\'s technical projects.',
+          technical: 'Aydın has expertise in 3D modeling and printing, electronics, robotics, and system integration. He is responsible for creating physical prototypes, optimizing designs, and developing the mechanical components of systems. He is one of the key members who transforms ideas into tangible products.',
+          innovation: 'In his role, Aydın applies modern technologies through creative thinking and practical skills, enhancing the technical quality of the team\'s projects.',
+          goal: 'He aims to grow his technical knowledge and experience within MegTech, learn new technologies, and contribute to creating innovative solutions.',
+        },
+        contact: {
+          title: 'Contact Us',
+        },
       },
       
       // Modal
