@@ -110,8 +110,8 @@ const LiveStreamModal = ({ open, onClose, onDetect, detecting, streamUrl }: Live
               key={useMjpeg ? 'mjpeg' : `snapshot-${imageKey}`}
               src={
                 useMjpeg
-                  ? `${streamUrl}?endpoint=/stream&t=${imageKey}`
-                  : `${streamUrl}?endpoint=/snapshot&t=${imageKey}`
+                  ? `${streamUrl}/stream?t=${imageKey}`
+                  : `${streamUrl}/snapshot?t=${imageKey}`
               }
               alt="Raspberry Pi Stream"
               className="h-full w-full object-cover"
