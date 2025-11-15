@@ -24,8 +24,10 @@ import {
 } from "@/components/ui/pagination";
 
 const PAGE_SIZE = 10;
-const PI_DETECT_URL = import.meta.env.VITE_PI_DETECT_URL ?? "";
-const PI_STREAM_URL = import.meta.env.VITE_PI_STREAM_URL ?? "";
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL ?? "";
+const PI_PROXY_URL = `${SUPABASE_URL}/functions/v1/pi-proxy`;
+const PI_DETECT_URL = PI_PROXY_URL;
+const PI_STREAM_URL = PI_PROXY_URL;
 
 const Dashboard = () => {
   const { t } = useTranslation();
@@ -221,7 +223,7 @@ const Dashboard = () => {
       }
 
       // Step 2: Send detection request
-      const detectUrl = `${PI_DETECT_URL}/detect`;
+      const detectUrl = `${PI_DETECT_URL}?endpoint=/detect`;
       logger.info("Dashboard", `Step 2: Sending POST request to: ${detectUrl}`);
       
       const response = await fetch(detectUrl, {
