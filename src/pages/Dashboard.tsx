@@ -380,7 +380,6 @@ const Dashboard = () => {
       { value: "noObjects", label: t("dashboard.noObjects") },
       { value: "healthy", label: t("dashboard.healthy") },
       { value: "diseased", label: t("dashboard.diseased") },
-      { value: "mixed", label: t("dashboard.mixed") },
     ],
     [t],
   );

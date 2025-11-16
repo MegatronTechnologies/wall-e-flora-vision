@@ -53,14 +53,12 @@ const DetectCard = ({ detection, index, onDelete, deleting = false, shouldAutoOp
     noObjects: "text-info",
     healthy: "text-green-500",
     diseased: "text-primary",
-    mixed: "text-yellow-500",
   };
 
   const statusBgColors: Record<Detection["status"], string> = {
     noObjects: "bg-info/10",
     healthy: "bg-green-500/10",
     diseased: "bg-primary/10",
-    mixed: "bg-yellow-500/10",
   };
 
   const handleRefreshImage = (event: MouseEvent<HTMLButtonElement>) => {

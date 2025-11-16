@@ -19,9 +19,9 @@ const detectionPayloadSchema = z.object({
     .string()
     .min(1, "main_image is required")
     .refine((val) => val.length < 15_000_000, "main_image too large"),
-  status: z.enum(["noObjects", "healthy", "diseased", "mixed"], {
+  status: z.enum(["noObjects", "healthy", "diseased"], {
     required_error: "status is required",
-    invalid_type_error: "status must be one of: noObjects, healthy, diseased, mixed",
+    invalid_type_error: "status must be one of: noObjects, healthy, diseased",
   }),
   confidence: z
     .number({
