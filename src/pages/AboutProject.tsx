@@ -25,9 +25,9 @@ const AboutProject = () => {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="mb-16 text-center"
+          className="mb-12 md:mb-16 text-center"
         >
-          <div className="flex flex-col items-center gap-8 md:flex-row md:gap-12 md:text-left">
+          <div className="flex flex-col items-center gap-6 md:gap-10 lg:flex-row lg:gap-12 lg:text-left max-w-6xl mx-auto">
             <motion.div 
               className="flex-shrink-0"
               whileHover={{ scale: 1.05, rotate: 2 }}
@@ -36,14 +36,14 @@ const AboutProject = () => {
               <img
                 src={walleRobot}
                 alt="Wall-E Robot"
-                className="h-64 w-auto object-contain drop-shadow-2xl"
+                className="h-48 sm:h-56 md:h-64 w-auto object-contain drop-shadow-2xl"
               />
             </motion.div>
             <div className="flex-1">
-              <h1 className="mb-4 text-5xl font-bold bg-gradient-to-r from-primary via-primary/80 to-primary/60 bg-clip-text text-transparent">
+              <h1 className="mb-3 md:mb-4 text-3xl sm:text-4xl md:text-5xl font-bold bg-gradient-to-r from-primary via-primary/80 to-primary/60 bg-clip-text text-transparent">
                 {t("aboutProject.title")}
               </h1>
-              <p className="text-xl text-muted-foreground leading-relaxed">
+              <p className="text-base sm:text-lg md:text-xl text-muted-foreground leading-relaxed">
                 {t("aboutProject.subtitle")}
               </p>
             </div>
@@ -81,10 +81,10 @@ const AboutProject = () => {
           transition={{ delay: 0.2 }}
           className="mb-12"
         >
-          <h2 className="mb-8 text-center text-3xl font-bold text-primary">
+          <h2 className="mb-6 md:mb-8 text-center text-2xl sm:text-3xl font-bold text-primary">
             {t("aboutProject.featuresTitle")}
           </h2>
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+          <div className="grid gap-4 sm:gap-6 grid-cols-2 lg:grid-cols-4 max-w-5xl mx-auto">
             {features.map((feature, index) => (
               <motion.div
                 key={index}
@@ -94,9 +94,9 @@ const AboutProject = () => {
                 whileHover={{ y: -5 }}
               >
                 <Card className="h-full border-primary/20 bg-card hover:border-primary/50 transition-all">
-                  <CardContent className="p-6 text-center">
-                    <feature.icon className="mx-auto mb-4 h-12 w-12 text-primary" />
-                    <p className="text-base font-semibold text-foreground">
+                  <CardContent className="p-4 sm:p-6 text-center">
+                    <feature.icon className="mx-auto mb-3 md:mb-4 h-10 w-10 md:h-12 md:w-12 text-primary" />
+                    <p className="text-sm sm:text-base font-semibold text-foreground">
                       {t(feature.titleKey)}
                     </p>
                   </CardContent>
