@@ -9,6 +9,7 @@ import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import SuperAdminPanel from "./pages/SuperAdminPanel";
 import AboutUs from "./pages/AboutUs";
+import AboutProject from "./pages/AboutProject";
 import NotFound from "./pages/NotFound";
 import "./i18n/config";
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -25,6 +26,7 @@ const App = () => (
           <Routes>
             <Route path="/" element={<Landing />} />
             <Route path="/about" element={<AboutUs />} />
+            <Route path="/about-project" element={<AboutProject />} />
             <Route path="/login" element={<Login />} />
             <Route
               path="/dashboard"

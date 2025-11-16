@@ -7,10 +7,12 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
-import { Sprout, Users, Mail } from 'lucide-react';
+import { Sprout, Users, Mail, Bot, Camera, Zap, Shield } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { logger } from '@/lib/logger';
 import { z } from 'zod';
+import { Card, CardContent } from '@/components/ui/card';
+import walleRobot from "@/assets/wall-e-robot.png";
 
 const contactSchema = z.object({
   name: z
@@ -204,46 +206,101 @@ const Landing = () => {
     <div className="min-h-screen bg-background">
       <Navbar />
       
-      {/* Hero Section */}
-      <section className="pt-32 pb-20 px-4">
-        <div className="container mx-auto text-center">
+      {/* Hero Section with Wall-E */}
+      <section className="relative py-20 overflow-hidden pt-32 px-4">
+        <div className="container mx-auto">
           <motion.div
-            initial={{ opacity: 0, y: 30 }}
+            initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            className="space-y-6 max-w-4xl mx-auto"
+            className="grid gap-12 md:grid-cols-2 items-center"
           >
-            <motion.div
-              animate={{ rotate: [0, 10, -10, 0] }}
-              transition={{ duration: 2, repeat: Infinity, repeatDelay: 3 }}
-              className="inline-block"
-            >
-              <Sprout className="h-20 w-20 text-primary mx-auto" />
-            </motion.div>
-            
-            <h1 className="text-5xl md:text-7xl font-bold leading-tight">
-              <span className="bg-gradient-to-r from-primary via-primary/80 to-primary bg-clip-text text-transparent">
-                {t('hero.title')}
-              </span>
-            </h1>
-            
-            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-              {t('hero.subtitle')}
-            </p>
-            
-            <motion.div
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-            >
-              <Button
-                size="lg"
-                className="bg-primary hover:bg-primary/90 text-lg px-8 py-6 animate-glow"
-                onClick={() => navigate('/dashboard')}
+            <div className="text-center md:text-left">
+              <motion.div
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                transition={{ delay: 0.2, type: "spring" }}
+                className="inline-block mb-4"
               >
-                {t('hero.getStarted')}
-              </Button>
+                <Bot className="h-16 w-16 text-primary" />
+              </motion.div>
+              <h1 className="mb-6 text-5xl font-extrabold bg-gradient-to-r from-primary via-primary/80 to-primary/60 bg-clip-text text-transparent">
+                {t('hero.title')}
+              </h1>
+              <p className="mb-8 text-xl text-muted-foreground leading-relaxed">
+                {t('hero.subtitle')}
+              </p>
+              <div className="flex flex-col sm:flex-row gap-4 justify-center md:justify-start">
+                <Button
+                  onClick={() => navigate('/login')}
+                  size="lg"
+                  className="bg-primary text-primary-foreground hover:bg-primary/90 hover:shadow-glow transition-all"
+                >
+                  {t('hero.getStarted')}
+                </Button>
+                <Button
+                  onClick={() => navigate('/about-project')}
+                  size="lg"
+                  variant="outline"
+                  className="border-primary/50 hover:bg-primary/10"
+                >
+                  {t('hero.learnMore')}
+                </Button>
+              </div>
+            </div>
+            <motion.div
+              initial={{ opacity: 0, x: 50 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.3 }}
+              className="flex justify-center"
+            >
+              <motion.img
+                src={walleRobot}
+                alt="Wall-E Robot"
+                className="h-80 w-auto object-contain drop-shadow-2xl"
+                whileHover={{ scale: 1.05, rotate: 2 }}
+                transition={{ duration: 0.3 }}
+              />
             </motion.div>
           </motion.div>
+        </div>
+      </section>
+
+      {/* Features Section */}
+      <section className="py-16 px-4">
+        <div className="container mx-auto">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.4 }}
+            className="mb-12 text-center"
+          >
+            <h2 className="mb-4 text-4xl font-bold text-primary">{t('features.title')}</h2>
+            <p className="text-lg text-muted-foreground">{t('features.subtitle')}</p>
+          </motion.div>
+          <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-4">
+            {[
+              { icon: Camera, titleKey: 'features.realtime', descKey: 'features.realtimeDesc' },
+              { icon: Zap, titleKey: 'features.fast', descKey: 'features.fastDesc' },
+              { icon: Shield, titleKey: 'features.accurate', descKey: 'features.accurateDesc' },
+              { icon: Bot, titleKey: 'features.autonomous', descKey: 'features.autonomousDesc' },
+            ].map((feature, index) => (
+              <motion.div
+                key={index}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.5 + index * 0.1 }}
+                whileHover={{ y: -5 }}
+              >
+                <Card className="h-full border-primary/20 hover:border-primary/50 transition-all hover:shadow-card">
+                  <CardContent className="p-6 text-center">
+                    <feature.icon className="mx-auto mb-4 h-12 w-12 text-primary" />
+                    <h3 className="mb-2 text-xl font-bold text-foreground">{t(feature.titleKey)}</h3>
+                    <p className="text-muted-foreground">{t(feature.descKey)}</p>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            ))}
+          </div>
         </div>
       </section>
 

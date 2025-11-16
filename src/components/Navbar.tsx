@@ -52,12 +52,17 @@ const Navbar = () => {
         </Link>
 
         <div className="flex items-center gap-4">
+          <LanguageSwitcher />
+          <Link to="/about-project">
+            <Button variant="ghost" size="sm" className="hover:text-primary">
+              {t("nav.aboutProject")}
+            </Button>
+          </Link>
           <Link to="/about">
             <Button variant="ghost" size="sm" className="hover:text-primary">
               {t("nav.aboutUs")}
             </Button>
           </Link>
-          <LanguageSwitcher />
           {loading ? null : user ? (
             <>
               {role === "superadmin" && (
