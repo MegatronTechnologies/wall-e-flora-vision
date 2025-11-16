@@ -7,7 +7,7 @@ import { formatDistanceToNow } from "date-fns";
 
 interface PiStatus {
   deviceId: string;
-  status: "healthy" | "diseased" | "mixed" | "noObjects";
+  status: "healthy" | "diseased" | "noObjects";
   confidence: number | null;
   objectCount: number;
   avgFps: number | null;
@@ -55,12 +55,6 @@ const StatusIndicator = () => {
           icon: AlertCircle,
           label: t("dashboard.status.diseased", { defaultValue: "Diseased" }),
           className: "bg-red-500/10 text-red-500 border-red-500/20",
-        };
-      case "mixed":
-        return {
-          icon: AlertTriangle,
-          label: t("dashboard.status.mixed", { defaultValue: "Mixed" }),
-          className: "bg-yellow-500/10 text-yellow-500 border-yellow-500/20",
         };
       case "noObjects":
         return {

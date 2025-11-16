@@ -165,7 +165,7 @@ const Landing = () => {
             '0 Objects Detected — no chrysanthemum found: show only the snapshot as evidence.',
             '“Chrysanthemum” detected — no “mealybug_infestation”: cropped healthy images and the snapshot.',
             '“Chrysanthemum” and “mealybug_infestation” detected — diseased: snapshot, crops and treatment/isolating info.',
-            'Multiple chrysanthemums: mixed healthy/diseased — show separately within the card.',
+            'Multiple chrysanthemums: if any is diseased, overall status is "diseased".',
           ],
         },
         {

@@ -76,10 +76,10 @@ const DetectionsTable = ({ detections, loading, onRefresh }: DetectionsTableProp
   };
 
   const getStatusBadge = (status: string) => {
-    const variants: Record<string, "default" | "secondary" | "destructive"> = {
+    const variants: Record<string, "default" | "secondary" | "destructive" | "outline"> = {
       healthy: "default",
       diseased: "destructive",
-      mixed: "secondary",
+      noObjects: "outline",
     };
     return (
       <Badge variant={variants[status] || "secondary"}>
