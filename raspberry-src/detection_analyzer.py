@@ -18,7 +18,7 @@ def summarize_detections(boxes, labels) -> Tuple[str, Optional[float], int]:
 
     Returns:
         (status, confidence, count)
-        status: "noObjects" | "healthy" | "diseased" | "mixed"
+        status: "noObjects" | "healthy" | "diseased"
     """
     if boxes is None or len(boxes) == 0:
         return "noObjects", None, 0
@@ -43,11 +43,17 @@ def summarize_detections(boxes, labels) -> Tuple[str, Optional[float], int]:
 
     if kept == 0:
         return "noObjects", None, 0
-    if has_mealybug and has_chrysanthemum:
-        return "mixed", highest_conf, kept
-    if has_mealybug:
-        return "diseased", highest_conf, kept
-    return "healthy", highest_conf, kept
+
+    # Если нет хризантем - статус noObjects (даже если есть mealybug)
+    if not has_chrysanthemum:
+        return "noObjects", None, 0
+
+    # Если есть хризантемы но нет mealybug - статус healthy
+    if not has_mealybug:
+        return "healthy", highest_conf, kept
+
+    # Если есть и хризантемы и mealybug - статус diseased
+    return "diseased", highest_conf, kept
 
 
 def calculate_iou(box1, box2) -> float:
@@ -187,13 +193,12 @@ def analyze_detection_with_crops(
         plant_images_b64.append(crop_b64)
 
     # Determine overall status
+    # If ANY plant is diseased, overall status is diseased
     statuses = [p["status"] for p in plant_statuses]
-    if all(s == "healthy" for s in statuses):
-        overall_status = "healthy"
-    elif all(s == "diseased" for s in statuses):
+    if any(s == "diseased" for s in statuses):
         overall_status = "diseased"
     else:
-        overall_status = "mixed"
+        overall_status = "healthy"
 
     # Calculate average confidence
     avg_confidence = sum(p["confidence"] for p in plant_statuses) / len(
