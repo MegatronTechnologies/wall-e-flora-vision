@@ -207,33 +207,33 @@ const Landing = () => {
       <Navbar />
       
       {/* Hero Section with Wall-E */}
-      <section className="relative py-20 overflow-hidden pt-32 px-4">
-        <div className="container mx-auto">
+      <section className="relative py-12 sm:py-16 md:py-20 overflow-hidden pt-20 sm:pt-24 md:pt-32 px-4">
+        <div className="container mx-auto max-w-7xl">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="grid gap-12 md:grid-cols-2 items-center"
+            className="grid gap-8 md:gap-12 lg:grid-cols-2 items-center"
           >
-            <div className="text-center md:text-left">
+            <div className="text-center lg:text-left order-2 lg:order-1">
               <motion.div
                 initial={{ scale: 0 }}
                 animate={{ scale: 1 }}
                 transition={{ delay: 0.2, type: "spring" }}
-                className="inline-block mb-4"
+                className="inline-block mb-3 md:mb-4"
               >
-                <Bot className="h-16 w-16 text-primary" />
+                <Bot className="h-12 w-12 sm:h-14 sm:w-14 md:h-16 md:w-16 text-primary" />
               </motion.div>
-              <h1 className="mb-6 text-5xl font-extrabold bg-gradient-to-r from-primary via-primary/80 to-primary/60 bg-clip-text text-transparent">
+              <h1 className="mb-4 sm:mb-5 md:mb-6 text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold bg-gradient-to-r from-primary via-primary/80 to-primary/60 bg-clip-text text-transparent leading-tight">
                 {t('hero.title')}
               </h1>
-              <p className="mb-8 text-xl text-muted-foreground leading-relaxed">
+              <p className="mb-6 sm:mb-7 md:mb-8 text-base sm:text-lg md:text-xl text-muted-foreground leading-relaxed max-w-2xl mx-auto lg:mx-0">
                 {t('hero.subtitle')}
               </p>
-              <div className="flex flex-col sm:flex-row gap-4 justify-center md:justify-start">
+              <div className="flex flex-col gap-3 sm:flex-row sm:gap-4 sm:justify-center lg:justify-start">
                 <Button
                   onClick={() => navigate('/login')}
                   size="lg"
-                  className="bg-primary text-primary-foreground hover:bg-primary/90 hover:shadow-glow transition-all"
+                  className="bg-primary text-primary-foreground hover:bg-primary/90 hover:shadow-glow transition-all text-base sm:text-lg"
                 >
                   {t('hero.getStarted')}
                 </Button>
@@ -241,7 +241,7 @@ const Landing = () => {
                   onClick={() => navigate('/about-project')}
                   size="lg"
                   variant="outline"
-                  className="border-primary/50 hover:bg-primary/10"
+                  className="border-primary/50 hover:bg-primary/10 text-base sm:text-lg"
                 >
                   {t('hero.learnMore')}
                 </Button>
@@ -251,12 +251,12 @@ const Landing = () => {
               initial={{ opacity: 0, x: 50 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.3 }}
-              className="flex justify-center"
+              className="flex justify-center order-1 lg:order-2"
             >
               <motion.img
                 src={walleRobot}
                 alt="Wall-E Robot"
-                className="h-80 w-auto object-contain drop-shadow-2xl"
+                className="h-48 sm:h-56 md:h-72 lg:h-80 w-auto object-contain drop-shadow-2xl"
                 whileHover={{ scale: 1.05, rotate: 2 }}
                 transition={{ duration: 0.3 }}
               />
@@ -266,18 +266,18 @@ const Landing = () => {
       </section>
 
       {/* Features Section */}
-      <section className="py-16 px-4">
-        <div className="container mx-auto">
+      <section className="py-12 sm:py-14 md:py-16 px-4">
+        <div className="container mx-auto max-w-7xl">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.4 }}
-            className="mb-12 text-center"
+            className="mb-8 sm:mb-10 md:mb-12 text-center"
           >
-            <h2 className="mb-4 text-4xl font-bold text-primary">{t('features.title')}</h2>
-            <p className="text-lg text-muted-foreground">{t('features.subtitle')}</p>
+            <h2 className="mb-3 md:mb-4 text-2xl sm:text-3xl md:text-4xl font-bold text-primary">{t('features.title')}</h2>
+            <p className="text-base sm:text-lg text-muted-foreground">{t('features.subtitle')}</p>
           </motion.div>
-          <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-4">
+          <div className="grid gap-4 sm:gap-6 md:gap-8 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
             {[
               { icon: Camera, titleKey: 'features.realtime', descKey: 'features.realtimeDesc' },
               { icon: Zap, titleKey: 'features.fast', descKey: 'features.fastDesc' },
@@ -292,10 +292,10 @@ const Landing = () => {
                 whileHover={{ y: -5 }}
               >
                 <Card className="h-full border-primary/20 hover:border-primary/50 transition-all hover:shadow-card">
-                  <CardContent className="p-6 text-center">
-                    <feature.icon className="mx-auto mb-4 h-12 w-12 text-primary" />
-                    <h3 className="mb-2 text-xl font-bold text-foreground">{t(feature.titleKey)}</h3>
-                    <p className="text-muted-foreground">{t(feature.descKey)}</p>
+                  <CardContent className="p-4 sm:p-5 md:p-6 text-center">
+                    <feature.icon className="mx-auto mb-3 md:mb-4 h-10 w-10 sm:h-11 sm:w-11 md:h-12 md:w-12 text-primary" />
+                    <h3 className="mb-2 text-lg sm:text-xl font-bold text-foreground">{t(feature.titleKey)}</h3>
+                    <p className="text-sm sm:text-base text-muted-foreground">{t(feature.descKey)}</p>
                   </CardContent>
                 </Card>
               </motion.div>
@@ -305,25 +305,25 @@ const Landing = () => {
       </section>
 
       {/* Contact Section */}
-      <section id="contact" className="py-20 px-4">
-        <div className="container mx-auto">
+      <section id="contact" className="py-12 sm:py-16 md:py-20 px-4">
+        <div className="container mx-auto max-w-7xl">
           <motion.div
             initial={{ opacity: 0 }}
             whileInView={{ opacity: 1 }}
             viewport={{ once: true }}
             className="max-w-2xl mx-auto"
           >
-            <div className="flex items-center gap-3 mb-8 justify-center">
-              <Mail className="h-8 w-8 text-primary" />
-              <h2 className="text-4xl font-bold">{t('contact.title')}</h2>
+            <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-3 mb-6 sm:mb-8 justify-center">
+              <Mail className="h-6 w-6 sm:h-7 sm:w-7 md:h-8 md:w-8 text-primary" />
+              <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-center">{t('contact.title')}</h2>
             </div>
             
-            <form onSubmit={handleContact} className="space-y-6">
+            <form onSubmit={handleContact} className="space-y-4 sm:space-y-5 md:space-y-6">
               <div>
                 <Input
                   name="name"
                   placeholder={t('contact.name')}
-                  className="bg-card border-border focus:border-primary"
+                  className="bg-card border-border focus:border-primary text-base"
                   required
                 />
               </div>
@@ -333,7 +333,7 @@ const Landing = () => {
                   name="email"
                   type="email"
                   placeholder={t('contact.email')}
-                  className="bg-card border-border focus:border-primary"
+                  className="bg-card border-border focus:border-primary text-base"
                   required
                 />
               </div>
@@ -342,7 +342,7 @@ const Landing = () => {
                 <Textarea
                   name="message"
                   placeholder={t('contact.message')}
-                  className="bg-card border-border focus:border-primary min-h-[150px]"
+                  className="bg-card border-border focus:border-primary min-h-[120px] sm:min-h-[150px] text-base"
                   required
                 />
               </div>
@@ -350,7 +350,7 @@ const Landing = () => {
               <Button
                 type="submit"
                 size="lg"
-                className="w-full bg-primary hover:bg-primary/90"
+                className="w-full bg-primary hover:bg-primary/90 text-base sm:text-lg"
               >
                 {t('contact.send')}
               </Button>
