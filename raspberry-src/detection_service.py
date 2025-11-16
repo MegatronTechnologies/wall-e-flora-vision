@@ -53,6 +53,7 @@ class SharedState:
     """Shared state between detection thread and Flask HTTP server."""
 
     latest_frame: Optional[np.ndarray] = None
+    latest_raw_frame: Optional[np.ndarray] = None  # Original frame without annotations
     latest_jpeg_buffer: Optional[bytes] = None  # Pre-encoded JPEG for streaming
     latest_timestamp: float = 0.0
     status: str = "noObjects"
@@ -237,6 +238,7 @@ class DetectionService:
                 # Update shared state with display frame and cached JPEG (for streaming)
                 with self.lock:
                     self.state.latest_frame = display_frame.copy()
+                    self.state.latest_raw_frame = frame.copy()  # Store original frame without annotations
                     self.state.latest_jpeg_buffer = jpeg_bytes
                     self.state.latest_timestamp = time.time()
                     self.state.status = status
@@ -487,7 +489,7 @@ class DetectionService:
         with self.lock:
             # Get the original frame (without annotations) for fresh YOLO inference
             frame = (
-                None if self.state.latest_frame is None else self.state.latest_frame.copy()
+                None if self.state.latest_raw_frame is None else self.state.latest_raw_frame.copy()
             )
 
         if frame is None:
