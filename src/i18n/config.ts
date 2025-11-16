@@ -1,9 +1,11 @@
 import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
+import { aboutProjectTranslations } from './aboutProject';
 
 const resources = {
   az: {
     translation: {
+      ...aboutProjectTranslations.az,
       common: {
         loading: 'Yüklənir...',
         notAvailable: 'Mövcud deyil',
@@ -18,6 +20,7 @@ const resources = {
         userPanel: 'İstifadəçi Paneli',
         adminPanel: 'Admin Paneli',
         aboutUs: 'Haqqımızda',
+        aboutProject: 'Layihə Haqqında',
       },
       
       // Landing
@@ -25,6 +28,19 @@ const resources = {
         title: 'Wall-E — bitkilərə qayğı göstərən robot',
         subtitle: 'Süni intellekt əsaslı bitki sağlamlığı detektoru. SAF 2025 üçün MegTech tərəfindən hazırlanmışdır.',
         getStarted: 'Başla',
+        learnMore: 'Ətraflı',
+      },
+      features: {
+        title: 'Xüsusiyyətlər',
+        subtitle: 'Wall-E robotunun əsas imkanları',
+        realtime: 'Real-vaxt Analiz',
+        realtimeDesc: 'Intel RealSense D455 ilə canlı görüntü və dərinlik məlumatı',
+        fast: 'Sürətli',
+        fastDesc: 'Raspberry Pi 5 üzərində YOLOv8 ilə saniyələrlə nəticə',
+        accurate: 'Dəqiq',
+        accurateDesc: 'Yüksək etibarlılıqla xəstəlik və zərərverici aşkarlanması',
+        autonomous: 'Avtonom',
+        autonomousDesc: '3D printerlə hazırlanmış korpus və Arduino idarəetməsi',
       },
       
       // About
@@ -260,6 +276,7 @@ const resources = {
   },
   eng: {
     translation: {
+      ...aboutProjectTranslations.eng,
       common: {
         loading: 'Loading...',
         notAvailable: 'N/A',
@@ -274,6 +291,7 @@ const resources = {
         userPanel: 'User Panel',
         adminPanel: 'Admin Panel',
         aboutUs: 'About Us',
+        aboutProject: 'About Project',
       },
       
       // Landing
@@ -281,6 +299,19 @@ const resources = {
         title: 'Wall-E — the robot that cares for plants',
         subtitle: 'AI-powered plant health detector. Developed by MegTech for SAF 2025.',
         getStarted: 'Get Started',
+        learnMore: 'Learn More',
+      },
+      features: {
+        title: 'Features',
+        subtitle: 'Key capabilities of the Wall-E robot',
+        realtime: 'Real-time Analysis',
+        realtimeDesc: 'Live imaging and depth data with Intel RealSense D455',
+        fast: 'Fast',
+        fastDesc: 'Results in seconds with YOLOv8 on Raspberry Pi 5',
+        accurate: 'Accurate',
+        accurateDesc: 'High-confidence disease and pest detection',
+        autonomous: 'Autonomous',
+        autonomousDesc: '3D-printed body with Arduino-controlled movement',
       },
       
       // About
