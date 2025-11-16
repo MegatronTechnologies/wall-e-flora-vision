@@ -151,7 +151,13 @@ def analyze_detection_with_crops(
     # Limit to 3 plants maximum
     chrysanthemums = chrysanthemums[:3]
 
-    # Analyze each chrysanthemum for mealybug infection
+    # Determine overall status based on presence of mealybugs
+    # If there are any mealybugs on the frame with chrysanthemums -> diseased
+    # If no mealybugs -> healthy
+    has_mealybug = len(mealybugs) > 0
+    overall_plant_status = "diseased" if has_mealybug else "healthy"
+
+    # Analyze each chrysanthemum
     plant_statuses = []
     plant_images_b64 = []
 
@@ -159,20 +165,11 @@ def analyze_detection_with_crops(
         plant_bbox = plant["bbox"]
         plant_conf = plant["confidence"]
 
-        # Check if any mealybug intersects with this plant (IoU > 0.3)
-        is_diseased = False
-        for mealybug in mealybugs:
-            iou = calculate_iou(plant_bbox, mealybug["bbox"])
-            if iou > 0.3:
-                is_diseased = True
-                break
-
-        # Determine plant status
-        plant_status = "diseased" if is_diseased else "healthy"
+        # All plants have the same status based on overall frame analysis
         plant_statuses.append(
             {
                 "order_num": idx,
-                "status": plant_status,
+                "status": overall_plant_status,
                 "confidence": round(plant_conf, 2),
             }
         )
@@ -192,13 +189,8 @@ def analyze_detection_with_crops(
         crop_b64 = encode_frame_to_base64(crop, f"plant_{idx}.jpg")["data"]
         plant_images_b64.append(crop_b64)
 
-    # Determine overall status
-    # If ANY plant is diseased, overall status is diseased
-    statuses = [p["status"] for p in plant_statuses]
-    if any(s == "diseased" for s in statuses):
-        overall_status = "diseased"
-    else:
-        overall_status = "healthy"
+    # Overall status already determined earlier
+    overall_status = overall_plant_status
 
     # Calculate average confidence
     avg_confidence = sum(p["confidence"] for p in plant_statuses) / len(
