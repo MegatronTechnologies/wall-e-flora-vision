@@ -6,7 +6,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Mail, Phone } from "lucide-react";
 import megtechLogo from "@/assets/megtech-logo.png";
 import aydinPhoto from "@/assets/aydin-sulxayev.jpg";
-import nihatPhoto from "@/assets/nihat-muradli.jpeg"; // TODO: Replace with new photo (convert HEIC to JPG/PNG first)
+import nihatPhoto from "@/assets/nihat-muradli-new.jpg";
 
 const AboutUs = () => {
   const { t } = useTranslation();
