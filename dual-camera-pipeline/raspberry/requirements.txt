@@ -1,0 +1,4 @@
+opencv-python>=4.10.0
+requests>=2.32.0
+picamera2>=0.3.24
+pyrealsense2>=2.56.5

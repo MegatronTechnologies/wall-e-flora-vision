@@ -24,8 +24,9 @@ import {
 } from "@/components/ui/pagination";
 
 const PAGE_SIZE = 10;
-const PI_DETECT_URL = import.meta.env.VITE_PI_DETECT_URL ?? "";
-const PI_STREAM_URL = import.meta.env.VITE_PI_STREAM_URL ?? "";
+const MEDIATOR_API_URL = import.meta.env.VITE_MEDIATOR_API_URL ?? import.meta.env.VITE_PI_DETECT_URL ?? "";
+const MEDIATOR_STREAM_REALSENSE_URL = import.meta.env.VITE_MEDIATOR_STREAM_REALSENSE_URL ?? import.meta.env.VITE_PI_STREAM_URL ?? "";
+const MEDIATOR_STREAM_RPI_CAM3_URL = import.meta.env.VITE_MEDIATOR_STREAM_RPI_CAM3_URL ?? "";
 
 const Dashboard = () => {
   const { t } = useTranslation();
@@ -206,8 +207,8 @@ const Dashboard = () => {
         logger.debug("Dashboard", "✓ Authentication token retrieved");
       }
 
-      if (!PI_DETECT_URL) {
-        logger.error("Dashboard", "❌ PI_DETECT_URL not configured");
+      if (!MEDIATOR_API_URL) {
+        logger.error("Dashboard", "❌ MEDIATOR_API_URL not configured");
         throw new Error("CONFIG_ERROR");
       }
 
@@ -221,7 +222,7 @@ const Dashboard = () => {
       }
 
       // Step 2: Send detection request
-      const detectUrl = `${PI_DETECT_URL}/detect`;
+      const detectUrl = `${MEDIATOR_API_URL}/detect`;
       logger.info("Dashboard", `Step 2: Sending POST request to: ${detectUrl}`);
       
       const response = await fetch(detectUrl, {
@@ -504,7 +505,8 @@ const Dashboard = () => {
         onClose={() => setIsStreamModalOpen(false)}
         onDetect={handleDetect}
         detecting={isDetecting}
-        streamUrl={PI_STREAM_URL}
+        realsenseStreamUrl={MEDIATOR_STREAM_REALSENSE_URL}
+        rpiCam3StreamUrl={MEDIATOR_STREAM_RPI_CAM3_URL}
       />
     </div>
   );
